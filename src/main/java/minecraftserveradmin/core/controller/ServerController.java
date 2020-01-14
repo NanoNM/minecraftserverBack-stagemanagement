@@ -1,6 +1,5 @@
 package minecraftserveradmin.core.controller;
 
-import minecraftserveradmin.core.entity.Back2HTMLModel;
 import minecraftserveradmin.core.services.RunServerService;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.lang.Nullable;

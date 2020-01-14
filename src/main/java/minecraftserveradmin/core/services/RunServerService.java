@@ -1,9 +1,6 @@
 package minecraftserveradmin.core.services;
 
-import com.alibaba.fastjson.JSONObject;
-import minecraftserveradmin.core.entity.Back2HTMLModel;
 import minecraftserveradmin.core.util.LogUtil;
-import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -14,7 +11,6 @@ public class RunServerService {
     int a = 1;
     public static Process process;
     private Integer serverIsOpen = 0;
-    private Back2HTMLModel back2HTMLModel= new Back2HTMLModel();
     String logname;
     //判断系统
     GetServerInfoService getServerInfoService = new GetServerInfoService();
