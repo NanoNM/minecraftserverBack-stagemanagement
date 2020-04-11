@@ -19,8 +19,7 @@ public class RunServerService {
     }
 
     public Integer doCom(String cmd){
-
-        String com = "java -jar .\\server\\cat.jar -nogui";
+        String com = "java -jar cat.jar";
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
                 process = Runtime.getRuntime().exec(com);
@@ -28,7 +27,7 @@ public class RunServerService {
 
             Thread threadReader = new Thread(new Runnable() {
                 @Override
-                public void run() {
+                public void run(){
                     LogUtil.log.info("我的世界服务器启动");
                     InputStream inputStream = process.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF8")));

@@ -2,18 +2,17 @@ package minecraftserveradmin.core.controller;
 
 import minecraftserveradmin.core.services.RunServerService;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.lang.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.*;
-import java.nio.charset.Charset;
 
 @Controller
 public class ServerController {
-    RunServerService runServerService = new RunServerService();
-
+    @Autowired
+    RunServerService runServerService;
     @ResponseBody
     @GetMapping("/admin/server/s")
     private Integer index(@Param("cmd") String cmd) {
@@ -45,4 +44,5 @@ public class ServerController {
     private Integer serverTest(){
        return runServerService.getServerIsOpen();
     }
+
 }

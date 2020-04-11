@@ -2,6 +2,7 @@ package minecraftserveradmin.core.controller;
 
 import minecraftserveradmin.core.entity.ServerInfoModel;
 import minecraftserveradmin.core.services.GetServerInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -12,7 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class MainPageController {
-    GetServerInfoService getServerInfoService = new GetServerInfoService();
+    @Autowired
+    GetServerInfoService getServerInfoService;
     @GetMapping("/")
     private String index(){
         return "index";

@@ -1,18 +1,15 @@
 package minecraftserveradmin.core.services;
 
 import minecraftserveradmin.core.entity.ServerInfoModel;
-import org.springframework.beans.factory.annotation.Autowired;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 import org.springframework.stereotype.Service;
-import oshi.util.FormatUtil;
 
 @Service
 public class GetServerInfoService {
-
     ServerInfoModel serverInfoModel = new ServerInfoModel();
 
     public String getSystem(){

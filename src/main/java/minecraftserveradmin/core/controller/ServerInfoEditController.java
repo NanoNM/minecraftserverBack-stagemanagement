@@ -3,6 +3,7 @@ package minecraftserveradmin.core.controller;
 import com.alibaba.fastjson.JSONObject;
 import minecraftserveradmin.core.entity.ServerSettingModel;
 import minecraftserveradmin.core.services.FormatServerSettingService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,10 +15,11 @@ import java.io.IOException;
 
 @Controller
 public class ServerInfoEditController {
-    FormatServerSettingService formatServerSettingService = new FormatServerSettingService();
+    @Autowired
+    FormatServerSettingService formatServerSettingService;
     @ResponseBody
     @GetMapping("/admin/getsetting")
-    public ServerSettingModel infoEdit() throws IOException {
+    public String infoEdit() throws IOException {
         return formatServerSettingService.getModel();
     }
     @ResponseBody
