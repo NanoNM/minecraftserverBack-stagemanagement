@@ -2,7 +2,10 @@ package minecraftserveradmin.core.entity;
 
 import java.util.List;
 
-public class Mod {
+/**
+ * MOD实体类 存放自定义的mod信息
+ */
+public class ModModel {
     String modFilename;
     String modName;
     List<String> modAuthors;

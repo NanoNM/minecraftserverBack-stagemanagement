@@ -20,6 +20,12 @@
     </properties>
 
     <dependencies>
+<!--        yaml-->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.10</version>
+        </dependency>
         <!-- Gson       -->
         <dependency>
             <groupId>com.3sidedcube.util</groupId>

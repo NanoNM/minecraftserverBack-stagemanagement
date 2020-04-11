@@ -1,25 +1,22 @@
 package minecraftserveradmin.core.controller;
 
 import minecraftserveradmin.core.services.GetModListService;
-import minecraftserveradmin.core.services.SaveAsModService;
+import minecraftserveradmin.core.services.SaveFileService;
+import minecraftserveradmin.core.services.impl.SaveAsModImpl;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 @Controller
-public class ModSettingConfig {
+public class ModSettingContorller {
     @Autowired
     GetModListService getModList;
     @Autowired
-    SaveAsModService saveAsModService;
+    SaveAsModImpl saveAsMod;
     //mod启用禁用
     @ResponseBody
     @GetMapping("/admin/modScanning")
@@ -58,7 +55,7 @@ public class ModSettingConfig {
             return "error 没有选择文件？";
         }
         try {
-            saveAsModService.savemod(file);
+            saveAsMod.save(file);
         } catch (Exception e) {
             e.printStackTrace();
         }

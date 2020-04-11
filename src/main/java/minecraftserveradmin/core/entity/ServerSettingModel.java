@@ -2,6 +2,9 @@ package minecraftserveradmin.core.entity;
 
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
+/***
+ * 不再使用 废弃
+ */
 @EntityScan
 public class ServerSettingModel {
     private String spawn_rotection;

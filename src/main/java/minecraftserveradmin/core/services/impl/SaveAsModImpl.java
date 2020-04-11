@@ -1,13 +1,19 @@
-package minecraftserveradmin.core.services;
+package minecraftserveradmin.core.services.impl;
 
+import minecraftserveradmin.core.services.SaveFileService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 
+/**
+ * 保存为mod
+ */
 @Service
-public class SaveAsModService {
-    public void savemod(MultipartFile file) {
+public class SaveAsModImpl implements SaveFileService {
+    @Override
+    public void save(MultipartFile file) {
         try {
             String mainpath = System.getProperty("user.dir");
             File file1 = new File(mainpath+"\\mods\\"+file.getOriginalFilename());
