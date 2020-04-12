@@ -12,20 +12,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 
-
+/**
+ * 无用
+ */
 @Controller
 public class ServerInfoEditController {
-    @Autowired
-    FormatServerSettingService formatServerSettingService;
-    @ResponseBody
-    @GetMapping("/admin/getsetting")
-    public String infoEdit() throws IOException {
-        return formatServerSettingService.getModel();
-    }
-    @ResponseBody
-    @RequestMapping("/admin/setsetting")
-    public boolean setSetting(@RequestBody JSONObject jsonParam) throws IOException {
-        formatServerSettingService.settingFormat(jsonParam);
-        return true;
-    }
+
 }
