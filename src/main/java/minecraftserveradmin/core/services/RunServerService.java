@@ -19,10 +19,11 @@ public class RunServerService {
     }
 
     public Integer doCom(String cmd){
-        String com = "java -jar cat.jar";
+        String com = "java -jar server.jar";
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
                 process = Runtime.getRuntime().exec(com);
+
             }
 
             Thread threadReader = new Thread(new Runnable() {
@@ -36,9 +37,13 @@ public class RunServerService {
                         while((line = br.readLine())!= null){
                             LogUtil.log.info(line);
                         }
+                        serverIsOpen = 0;
+                        inputStream.close();
+                        process.destroy();
                     }catch (Exception e){ LogUtil.log.error(e.getMessage()); }
                 }
             });
+
             Thread threadError = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -55,6 +60,7 @@ public class RunServerService {
                     }
                 }
             });
+
             Thread threadSender = new Thread(new Runnable() {
                 @Override
                 public void run() {
