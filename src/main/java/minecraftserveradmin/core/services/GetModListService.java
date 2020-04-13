@@ -50,7 +50,7 @@ public class GetModListService {
         File file = new File(path);
         File[] fs = file.listFiles();
         for(File f:fs) {
-            if (f.getName().contains(filename)){
+            if (f.getName().contains(filename) && f.isFile()){
                 File oldName = new File(".//mods//"+f.getName());
                 File newName = new File(".//mods//"+filename+".jar");
                 oldName.renameTo(newName);
@@ -64,7 +64,7 @@ public class GetModListService {
         File[] fs = file.listFiles();
         System.out.println(filename);
         for (File f : fs) {
-            if (f.getName().contains(filename)) {
+            if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//mods//" + f.getName());
                 File newName = new File(".//mods//" + filename + ".jardisable");
                 oldName.renameTo(newName);
@@ -79,7 +79,7 @@ public class GetModListService {
         assert fs != null;
         for(File f:fs) {
             if (!f.isDirectory()) {
-                if (f.getName().contains(filename)) {
+                if (f.getName().contains(filename) && f.isFile()) {
                     try(FileInputStream input = new FileInputStream("./mods/"+f.getName());
                         //获取ZIP输入流(一定要指定字符集Charset.forName("GBK")否则会报java.lang.IllegalArgumentException: MALFORMED)
                         ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(input), Charset.forName("UTF8"))//定义ZipEntry置为null,避免由于重复调用zipInputStream.getNextEntry造成的不必要的问题
@@ -114,7 +114,7 @@ public class GetModListService {
         File[] fs = file.listFiles();
         System.out.println(filename);
         for (File f : fs) {
-            if (f.getName().contains(filename)) {
+            if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//mods//" + f.getName());
                 File newName = new File(".//mods//" + filename + ".jarremoved");
                 oldName.renameTo(newName);

@@ -52,10 +52,12 @@ public class GetPluginsListService {
         String path = ".//plugins";
         File file = new File(path);
         File[] fs = file.listFiles();
+        assert fs != null;
         for(File f:fs) {
-            if (f.getName().contains(filename)){
-                File oldName = new File(".//plugins//"+f.getName());
-                File newName = new File(".//plugins//"+filename+".jar");
+            System.err.println(f.getName());
+            if (f.getName().contains(filename) && f.isFile()){
+                File oldName = new File("./plugins/"+f.getName());
+                File newName = new File("./plugins/"+filename+".jar");
                 oldName.renameTo(newName);
             }
         }
@@ -64,9 +66,8 @@ public class GetPluginsListService {
         String path = ".//plugins";
         File file = new File(path);
         File[] fs = file.listFiles();
-        System.out.println(filename);
         for (File f : fs) {
-            if (f.getName().contains(filename)) {
+            if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//plugins//" + f.getName());
                 File newName = new File(".//plugins//" + filename + ".jardisable");
                 oldName.renameTo(newName);
@@ -81,7 +82,7 @@ public class GetPluginsListService {
         assert fs != null;
         for(File f:fs) {
             if (!f.isDirectory()) {
-                if (f.getName().contains(filename)) {
+                if (f.getName().contains(filename) && f.isFile()) {
                     try(FileInputStream input = new FileInputStream("./plugins/"+f.getName());
                         //获取ZIP输入流(一定要指定字符集Charset.forName("GBK")否则会报java.lang.IllegalArgumentException: MALFORMED)
                         ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(input), Charset.forName("UTF8"))//定义ZipEntry置为null,避免由于重复调用zipInputStream.getNextEntry造成的不必要的问题
@@ -119,7 +120,7 @@ public class GetPluginsListService {
         File[] fs = file.listFiles();
         System.out.println(filename);
         for (File f : fs) {
-            if (f.getName().contains(filename)) {
+            if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//plugins//" + f.getName());
                 File newName = new File(".//plugins//" + filename + ".jarremoved");
                 oldName.renameTo(newName);
