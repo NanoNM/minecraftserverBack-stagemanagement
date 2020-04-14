@@ -50,7 +50,7 @@ public class ModSettingContorller {
     //mod上传
     @ResponseBody
     @PostMapping("/admin/upfilemods")
-    public String uploadFile(@RequestParam("filename") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file) {
         if (file!= null && file.isEmpty()){
             return "error 没有选择文件？";
         }

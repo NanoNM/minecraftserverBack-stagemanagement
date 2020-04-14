@@ -16,7 +16,7 @@ public class SaveAsPluginImpl implements SaveFileService {
     public void save(MultipartFile file) {
         try {
             String mainpath = System.getProperty("user.dir");
-            File file1 = new File(mainpath+"\\plugins\\"+file.getOriginalFilename());
+            File file1 = new File(mainpath+"/plugins/"+file.getOriginalFilename());
             file.transferTo(file1);//保存文件
         } catch (IOException e) {
             e.printStackTrace();

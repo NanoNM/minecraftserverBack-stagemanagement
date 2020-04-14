@@ -62,7 +62,6 @@ public class GetModListService {
         String path = ".//mods";
         File file = new File(path);
         File[] fs = file.listFiles();
-        System.out.println(filename);
         for (File f : fs) {
             if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//mods//" + f.getName());
@@ -112,7 +111,6 @@ public class GetModListService {
         String path = ".//mods";
         File file = new File(path);
         File[] fs = file.listFiles();
-        System.out.println(filename);
         for (File f : fs) {
             if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//mods//" + f.getName());

@@ -54,7 +54,7 @@ public class PluginsSettingController {
     //mod上传
     @ResponseBody
     @PostMapping("/admin/upfileplugins")
-    public String uploadFile(@RequestParam("filename") MultipartFile file) {
+    public String uploadFile(@RequestParam("file") MultipartFile file) {
         if (file!= null && file.isEmpty()){
             return "error 没有选择文件？";
         }
@@ -62,6 +62,7 @@ public class PluginsSettingController {
             saveAsPlugin.save(file);
         } catch (Exception e) {
             e.printStackTrace();
+            return "500 Error";
         }
         return "success !!";
     }

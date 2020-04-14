@@ -54,7 +54,6 @@ public class GetPluginsListService {
         File[] fs = file.listFiles();
         assert fs != null;
         for(File f:fs) {
-            System.err.println(f.getName());
             if (f.getName().contains(filename) && f.isFile()){
                 File oldName = new File("./plugins/"+f.getName());
                 File newName = new File("./plugins/"+filename+".jar");
@@ -118,7 +117,6 @@ public class GetPluginsListService {
         String path = ".//plugins";
         File file = new File(path);
         File[] fs = file.listFiles();
-        System.out.println(filename);
         for (File f : fs) {
             if (f.getName().contains(filename) && f.isFile()) {
                 File oldName = new File(".//plugins//" + f.getName());
