@@ -54,6 +54,7 @@ public class ServerController {
 
         } catch (IOException e) {
             e.printStackTrace();
+            s.append("");
         }
         return s;
     }

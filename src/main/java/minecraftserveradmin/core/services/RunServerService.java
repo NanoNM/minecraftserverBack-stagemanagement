@@ -23,7 +23,6 @@ public class RunServerService {
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
                 process = Runtime.getRuntime().exec(com);
-
             }
 
             Thread threadReader = new Thread(new Runnable() {
@@ -51,9 +50,14 @@ public class RunServerService {
                     try{
                         BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                         String readLine = br.readLine();
+                        String befline = "";
                         String line = null;
                         while ((line = readLine)!= null) {
-                            LogUtil.log.error(line);
+                            if (!befline.equals(line)){
+                                LogUtil.log.error(line);
+                                befline = line;
+                            }
+
                         }
                     }catch (Exception e){
                         LogUtil.log.error(e.getMessage());
@@ -79,19 +83,24 @@ public class RunServerService {
                 }
             });
 
-
             if (serverIsOpen == 0 & "startserver".equals(cmd)){
                 this.serverIsOpen = 1;
                 threadReader.start();
+                threadError.start();
             }else if (cmd!=null && !"startserver".equals(cmd)){
+                // 极度不安全的强制关机
+                if("hardstop".equals(cmd)){
+                    LogUtil.log.info("我的世界服务器强制关机指令送达!!!!");
+                    process.destroy();
+                    return 0;
+                }
+                threadSender.start();
                 if("stop".equals(cmd)){
                     LogUtil.log.info("我的世界服务器关机指令送达!!!!");
-                    serverIsOpen = 0;
                 }
                 LogUtil.log.info("我的世界服务器指令送达!");
-                threadSender.start();
             }else if (serverIsOpen == 0){
-                threadError.start();
+
             }
 
 

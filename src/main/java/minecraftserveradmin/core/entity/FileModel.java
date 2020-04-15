@@ -1,9 +1,5 @@
 package minecraftserveradmin.core.entity;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
 public class FileModel {
     public String md5;
     private String name; //文件名或目录名
@@ -12,8 +8,17 @@ public class FileModel {
     private long size;   //文件的大小
     private FileModel father = null;    //该文件或目录的上级目录
     private String onwer;
+    private String filePath;
+    private String patent;
 
-    public FileModel(String name, String type, int attr, long size, FileModel father, byte[] md5) {
+    private static final String projectPath;
+
+    static{
+        projectPath  = System.getProperty("user.dir");
+    }
+
+    public FileModel(String name, String type, int attr, long size, FileModel father, byte[] md5, String filePath, String patent) {
+        this.filePath = filePath.replaceAll(projectPath+"/","");
         this.name = name;
         this.type = type;
         this.attr = attr;
@@ -24,7 +29,28 @@ public class FileModel {
         }else{
             this.md5 = null;
         }
+        if (patent != null){
+            this.patent = patent;
+        }else{
+            this.patent = null;
+        }
 
+    }
+
+    public String getPatent() {
+        return patent;
+    }
+
+    public void setPatent(String patent) {
+        this.patent = patent;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public String getMd5() {

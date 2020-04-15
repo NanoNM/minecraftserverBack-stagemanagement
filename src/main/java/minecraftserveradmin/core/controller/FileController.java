@@ -1,8 +1,7 @@
 package minecraftserveradmin.core.controller;
 
 import minecraftserveradmin.core.services.impl.FIleOperationImpl;
-import minecraftserveradmin.core.entity.FileModel;
-import minecraftserveradmin.core.entity.ServerInfoModel;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,12 +16,21 @@ public class FileController {
     FIleOperationImpl fIleOperation;
     @ResponseBody
     @GetMapping("/admin/file")
-    private List fileManger(){
-        try {
-            return fIleOperation.rootDir();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    private List fileManger(@Param("path") String path){
+        if (path == null){
+            try {
+                return fIleOperation.rootDir();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }else{
+            try {
+                return fIleOperation.getFIle(path);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 }
