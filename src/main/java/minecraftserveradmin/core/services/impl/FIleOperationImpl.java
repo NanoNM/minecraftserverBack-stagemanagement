@@ -2,6 +2,7 @@ package minecraftserveradmin.core.services.impl;
 
 import minecraftserveradmin.core.entity.FileModel;
 import minecraftserveradmin.core.services.FileOperationService;
+import minecraftserveradmin.core.services.GetServerInfoService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -13,7 +14,10 @@ import java.util.List;
 
 @Service
 public class FIleOperationImpl implements FileOperationService {
-
+    GetServerInfoService getServerInfoService = new GetServerInfoService();
+    public boolean testSystem(){
+        return "Windows".equals(getServerInfoService.getSystem());
+    }
     private static final String projectPath;
     static{
         projectPath  = System.getProperty("user.dir");
@@ -69,16 +73,32 @@ public class FIleOperationImpl implements FileOperationService {
     private FileModel getFather(String name) throws IOException {
         File file = new File(name);
         FileModel fileModel;
-        if (projectPath.substring(projectPath.lastIndexOf("/")).equals("/"+file.getParentFile().getName())){
-            return null;
-        }else{
-            File FatherFile = new File(file.getParentFile().getPath());
-            if (!FatherFile.isDirectory()){
-                fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
+        if(testSystem()){
+            if (projectPath.substring(projectPath.lastIndexOf("\\")).equals("\\"+file.getParentFile().getName())){
+                return null;
             }else{
-                fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
+                File FatherFile = new File(file.getParentFile().getPath());
+                if (!FatherFile.isDirectory()){
+                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
+                }else{
+                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
+                }
+                return fileModel;
             }
-            return fileModel;
+        }else{
+            if (projectPath.substring(projectPath.lastIndexOf("/")).equals("/"+file.getParentFile().getName())){
+                return null;
+            }else{
+                File FatherFile = new File(file.getParentFile().getPath());
+                if (!FatherFile.isDirectory()){
+                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
+                }else{
+                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
+                }
+                return fileModel;
+            }
         }
     }
+
+
 }

@@ -46,7 +46,6 @@ public class ServerController {
             FileInputStream f = new FileInputStream(file);
             InputStreamReader isr = new InputStreamReader(f);
             BufferedReader br = new BufferedReader(isr);
-
             String line = null;
             while((line = br.readLine())!=null){
                 s.append(line+"\n");

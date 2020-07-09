@@ -1,6 +1,9 @@
 package minecraftserveradmin.core.entity;
 
+import minecraftserveradmin.core.util.TestOS;
+
 public class FileModel {
+    TestOS testSystem =new TestOS();
     public String md5;
     private String name; //文件名或目录名
     private String type; //文件类型
@@ -18,7 +21,13 @@ public class FileModel {
     }
 
     public FileModel(String name, String type, int attr, long size, FileModel father, byte[] md5, String filePath, String patent) {
-        this.filePath = filePath.replaceAll(projectPath+"/","");
+        String tmp_filePath = "";
+        String tmp_projectPath = "";
+        if(testSystem.testSystem()){
+            tmp_filePath = filePath.replaceAll("\\\\","/");
+            tmp_projectPath = filePath.replaceAll("\\\\","/");
+        }
+        this.filePath = tmp_filePath.replaceAll(tmp_projectPath+"/","");
         this.name = name;
         this.type = type;
         this.attr = attr;

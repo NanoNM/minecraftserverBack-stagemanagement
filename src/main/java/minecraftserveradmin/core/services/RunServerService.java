@@ -19,9 +19,13 @@ public class RunServerService {
     }
 
     public Integer doCom(String cmd){
+//        String projectPath  = System.getProperty("user.dir");
+//        String target = projectPath.concat("\\MineCraftServer");
+//        System.setProperty("user.dir", target);
         String com = "java -jar server.jar";
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
+                //System.out.println(System.getProperty("user.dir"));
                 process = Runtime.getRuntime().exec(com);
             }
 

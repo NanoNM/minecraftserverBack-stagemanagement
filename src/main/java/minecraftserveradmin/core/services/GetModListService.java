@@ -25,6 +25,9 @@ public class GetModListService {
         String path = ".//mods";
         File file = new File(path);
         File[] fs = file.listFiles();
+        if (fs == null){
+            return null;
+        }
         for(File f:fs) {
             if (!f.isDirectory()) {
                 ModModel m = new ModModel();
