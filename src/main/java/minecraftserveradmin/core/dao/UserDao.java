@@ -9,5 +9,6 @@ public interface UserDao {
     int insertUser(String name, String email, String pass, String authority, int vip_level, String UUID);
     @Select("select * from user where user_name=#{name}")
     UserModel selectUser(String name);
-
+    @Insert("insert into autologin(name,token) values(#{name},#{token})")
+    int insertAutoLogin(String name, String token);
 }
