@@ -29,8 +29,9 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/server/s")
-    private Integer index(@Param("cmd") String cmd) {
-        return runServerService.doCom(cmd);
+    private String index(@Param("cmd") String cmd) {
+//        return runServerService.doCom(cmd);
+        return "接口废弃";
     }
 
     /**
@@ -39,23 +40,23 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/server")
-    private StringBuffer serverInfoGetter(){
-        StringBuffer s= new StringBuffer();
-        try {
-            File file = new File("./logs/latest.log");
-            FileInputStream f = new FileInputStream(file);
-            InputStreamReader isr = new InputStreamReader(f);
-            BufferedReader br = new BufferedReader(isr);
-            String line = null;
-            while((line = br.readLine())!=null){
-                s.append(line+"\n");
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            s.append("");
-        }
-        return s;
+    private String serverInfoGetter(){
+//        StringBuffer s= new StringBuffer();
+//        try {
+//            File file = new File("./logs/latest.log");
+//            FileInputStream f = new FileInputStream(file);
+//            InputStreamReader isr = new InputStreamReader(f);
+//            BufferedReader br = new BufferedReader(isr);
+//            String line = null;
+//            while((line = br.readLine())!=null){
+//                s.append(line+"\n");
+//            }
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            s.append("");
+//        }
+        return "接口废弃";
     }
 
     /**
@@ -64,8 +65,9 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/serverTest")
-    private Integer serverTest(){
-       return runServerService.getServerIsOpen();
+    private String serverTest(){
+//       return runServerService.getServerIsOpen();
+        return "接口废弃";
     }
 
     /**

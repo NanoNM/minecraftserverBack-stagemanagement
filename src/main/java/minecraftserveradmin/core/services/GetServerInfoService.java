@@ -12,6 +12,12 @@ import org.springframework.stereotype.Service;
 public class GetServerInfoService {
     ServerInfoModel serverInfoModel = new ServerInfoModel();
 
+    private static final String systemInfo;
+
+    static{
+        systemInfo = getSystemInfo();
+    }
+
     public String getSystem(){
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hal = si.getHardware();
@@ -19,7 +25,7 @@ public class GetServerInfoService {
         return os.getFamily();
     }
 
-    private String getSystemInfo(){
+    private static String getSystemInfo(){
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hal = si.getHardware();
         OperatingSystem os = si.getOperatingSystem();
@@ -41,7 +47,7 @@ public class GetServerInfoService {
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hal = si.getHardware();
         OperatingSystem os = si.getOperatingSystem();
-        serverInfoModel.setSystemInfo(getSystemInfo());
+        serverInfoModel.setSystemInfo(systemInfo);
         serverInfoModel.setCpuInfo(printProcessor(hal.getProcessor()));
         serverInfoModel.setCpuUserInfo(printProcessorUser(hal.getProcessor()));
         serverInfoModel.setMemoryUserInfo(printMemoryUser(hal.getMemory()));

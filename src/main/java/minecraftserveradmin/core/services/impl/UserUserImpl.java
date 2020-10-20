@@ -5,6 +5,7 @@ import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
 import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
+import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -15,6 +16,8 @@ import java.util.Random;
 
 @Service
 public class UserUserImpl implements UserService {
+    @Autowired
+    TokenUtil tokenUtil;
 
     UserModel userModel;
     @Autowired
@@ -46,20 +49,26 @@ public class UserUserImpl implements UserService {
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
             if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-                Random random = new Random(1000);
-                long tmp_token = random.nextInt(1000)+System.currentTimeMillis()+random.nextInt(1000);
-                String token = DigestUtils.md5DigestAsHex(String.valueOf(tmp_token).getBytes());
 
-                response.addCookie(new Cookie("token",token));
+                Cookie AutoCookie = tokenUtil.getAutoLoginToken();
+                response.addCookie(AutoCookie);
+                Cookie ConnectCookie = tokenUtil.getConnect();
+                response.addCookie(ConnectCookie);
                 UserLoginModel userLoginModel = new UserLoginModel();
-                //response.();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+                userModel.setUUID(null);
+                userModel.setPasswd(null);
                 userLoginModel.setUserModel(userModel);
-                userDao.insertAutoLogin(userModel.getUser_name(),token);
+                userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
                 return userLoginModel;
             }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+                userModel.setUUID(null);
+                userModel.setPasswd(null);
+                Cookie ConnectCookie = tokenUtil.getAutoLoginToken();
+                response.addCookie(ConnectCookie);
+                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
                 userLoginModel.setUserModel(userModel);
                 return userLoginModel;
             }else{
@@ -69,9 +78,26 @@ public class UserUserImpl implements UserService {
             }
         }
     }
-    public void doLogout(){
-
+    public void doLogout(String name){
+        if (name!=null){
+            userDao.deleteTokenByName(name);
+        }
     }
 
+    public UserLoginModel doAutoLogin(String token) {
+        if(!"null".equals(token)){
+            String name = userDao.selectAutoByToken(token);
+            if (name!=null){
+                userModel = userDao.selectUser(name);
+                UserLoginModel userLoginModel = new UserLoginModel();
+                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+                userModel.setUUID(null);
+                userModel.setPasswd(null);
+                userLoginModel.setUserModel(userModel);
+                return userLoginModel;
+            }
+        }
+        return null;
+    }
 
 }

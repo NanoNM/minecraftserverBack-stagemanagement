@@ -61,7 +61,6 @@ public class RunServerService {
                                 LogUtil.log.error(line);
                                 befline = line;
                             }
-
                         }
                     }catch (Exception e){
                         LogUtil.log.error(e.getMessage());
@@ -73,7 +72,6 @@ public class RunServerService {
                 @Override
                 public void run() {
                     LogUtil.log.info("我的世界服务器指令响应!!!!");
-                    System.out.println();
                     try {
                         OutputStream outputStream = process.getOutputStream();
                         OutputStreamWriter ow = new OutputStreamWriter(outputStream);
