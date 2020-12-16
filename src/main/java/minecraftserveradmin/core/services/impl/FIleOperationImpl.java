@@ -77,28 +77,25 @@ public class FIleOperationImpl implements FileOperationService {
             if (projectPath.substring(projectPath.lastIndexOf("\\")).equals("\\"+file.getParentFile().getName())){
                 return null;
             }else{
-                File FatherFile = new File(file.getParentFile().getPath());
-                if (!FatherFile.isDirectory()){
-                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
-                }else{
-                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
-                }
-                return fileModel;
+                return getFileModel(file);
             }
         }else{
             if (projectPath.substring(projectPath.lastIndexOf("/")).equals("/"+file.getParentFile().getName())){
                 return null;
             }else{
-                File FatherFile = new File(file.getParentFile().getPath());
-                if (!FatherFile.isDirectory()){
-                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
-                }else{
-                    fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
-                }
-                return fileModel;
+                return getFileModel(file);
             }
         }
     }
 
-
+    private FileModel getFileModel(File file) throws IOException {
+        FileModel fileModel;
+        File FatherFile = new File(file.getParentFile().getPath());
+        if (!FatherFile.isDirectory()){
+            fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()), DigestUtils.md5Digest(new FileInputStream(FatherFile)), FatherFile.getPath(), FatherFile.getParent());
+        }else{
+            fileModel = new FileModel(FatherFile.getName(),"",0,0,getFather(FatherFile.getCanonicalPath()),null, FatherFile.getPath(), FatherFile.getParent());
+        }
+        return fileModel;
+    }
 }

@@ -136,7 +136,7 @@ public class AdminSocketImpl implements SocketRelatedService {
                 while (true) {
                     Long stopTs = System.currentTimeMillis();
                     int size2 = onlineSessions.size();
-                    if (size != size2 || (stopTs - startTs) == 60000) {
+                    if (size != size2 || (stopTs - startTs) == 1000) {
                         startTs = stopTs;
                         size = size2;
                         onlineSessions.forEach((id, session) -> {
