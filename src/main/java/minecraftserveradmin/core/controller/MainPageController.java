@@ -19,15 +19,17 @@ public class MainPageController {
 
     @Autowired
     GetServerInfoService getServerInfoService;
+
     @GetMapping("/")
     private String index(){
         return "index";
     }
-    @ResponseBody
-    @GetMapping("/admin/getServerInfo")
-    private ServerInfoModel serverInfo(){
-        return getServerInfoService.setModel();
-    }
+
+//    @ResponseBody
+//    @GetMapping("/admin/getServerInfo")
+//    private ServerInfoModel serverInfo(){
+//        return getServerInfoService.setModel();
+//    }
     @ResponseBody
     @GetMapping("/errorcode")
     private String getErrcode(){

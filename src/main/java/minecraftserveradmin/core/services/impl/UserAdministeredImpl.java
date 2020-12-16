@@ -33,11 +33,7 @@ public class UserAdministeredImpl implements UserService {
         return (0);
     }
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
-//        System.err.println(name);
-//        System.err.println(pass);
-//        System.err.println(autoLogin);
-        Integer index = userDao.selectOnlineByName(name);
-//        System.err.println(index);
+        Integer index = userDao.selectOnlineByName(name);;
         if (index != null){
             UserLoginModel userLoginModel = new UserLoginModel();
             userLoginModel.setCode(ErrorCode.ADMIN_EARLY_ONLINE);
@@ -54,7 +50,6 @@ public class UserAdministeredImpl implements UserService {
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
             if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-
                 Cookie AutoCookie = tokenUtil.getAutoLoginToken();
                 response.addCookie(AutoCookie);
                 Cookie ConnectCookie = tokenUtil.getConnect();
@@ -127,6 +122,7 @@ public class UserAdministeredImpl implements UserService {
 //            }
 //        }
 //    }
+    @Override
     public void doLogout(String name){
         if (name!=null){
             userDao.deleteTokenByName(name);

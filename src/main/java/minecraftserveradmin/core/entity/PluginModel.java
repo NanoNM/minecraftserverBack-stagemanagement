@@ -11,7 +11,9 @@ public class PluginModel {
     List<String> plguinAuthors;
     String plguinVersion;
 
+    String status;
     boolean isdisable;
+
     boolean isremoved;
 
     public String getPlguinFilename() {
@@ -60,5 +62,13 @@ public class PluginModel {
 
     public void setIsremoved(boolean isremoved) {
         this.isremoved = isremoved;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

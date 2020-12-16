@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.*;
 
+/**
+ * @author HASEE
+ */
 @Controller
 public class PlayerController {
     @ResponseBody

@@ -1,17 +1,19 @@
 package minecraftserveradmin.core.controller;
 
 import com.alibaba.fastjson.JSONObject;
-import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.AOPtoken;
+import minecraftserveradmin.core.services.SocketHandlerServices;
 import minecraftserveradmin.core.services.impl.AdminSocketImpl;
-import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.LogUtil;
 
 
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 
+import javax.annotation.PostConstruct;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
@@ -23,8 +25,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 @ServerEndpoint("/admin/tcpServer")//标记此类为服务端
 public class WebSocketService {
-    @Autowired
     static AdminSocketImpl adminSocketImpl;
+
+    @Autowired
+    SocketHandlerServices socketHandlerServices;
+
+//    @Autowired
+//    AdminSocketImpl adminSocket;
+    @Value("${server.serverInfoSenderTimer}")
+    String serverInfoSender;
 
     @Autowired
     public void setAdminSocketImpl(AdminSocketImpl adminSocketImpl) {
@@ -35,32 +44,40 @@ public class WebSocketService {
 //        WebSocketService.adminSocketImpl = adminSocketImpl;
 //    }
     //线程安全list
-    private static final List<AOPtoken> AOPtokens = new CopyOnWriteArrayList<>();
+    public static final List<AOPtoken> AOPtokens = new CopyOnWriteArrayList<>();
 
-    private static final List<AOPtoken> resBeatToken = new CopyOnWriteArrayList<>();
+    public static final List<AOPtoken> resBeatToken = new CopyOnWriteArrayList<>();
 
     /**
      * 全部在线会话  PS: 基于场景考虑 这里使用线程安全的Map存储会话对象。
      */
     private static final Map<String, Session> onlineSessions = new ConcurrentHashMap<>();
 
-
-    static{
-        LogUtil.log.info("============= socket服务启动 =================");
-        LogUtil.log.info("============= 权限验证系统启动 ==============");
+    @PostConstruct
+    void serverInit(){
+        AdminSocketImpl.serverInfoSender = serverInfoSender;
+        LogUtil.log.info("socket服务启动");
+        LogUtil.log.info("权限验证系统启动");
         AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);
-        LogUtil.log.info("============= 控制台信息发送线程启动 ==============");
+        LogUtil.log.info("控制台信息发送线程启动");
         AdminSocketImpl.conloseSender(onlineSessions);
+        LogUtil.log.info("mc服务器状态发送线程启动");
+        AdminSocketImpl.mcServerStateSender(onlineSessions);
+        LogUtil.log.info("系统信息发送线程启动");
+        AdminSocketImpl.ServerInfoSender(onlineSessions);
         heartBeat();
     }
-
     /**
      * 当客户端打开连接：1.添加会话对象 2.更新在线人数
      */
     @OnOpen
-    public void onOpen(Session session) throws IOException {
-//        System.out.println(session.getBasicRemote().);
+    public void onOpen(Session session) {
         onlineSessions.put(session.getId(), session);
+        try {
+            adminSocketImpl.sendStatusToConnect(session);
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
 //        session.getBasicRemote().sendText("{\"serverInfo\":\"" + ErrorCode.USER_NOT_ONLINE + "\"}");
     }
 
@@ -71,7 +88,20 @@ public class WebSocketService {
      */
     @OnMessage
     public void onMessage(Session session, String jsonStr) {
-        if (BaseTokenVerification(session, jsonStr)){
+        JSONObject jb = JSONObject.parseObject(jsonStr);
+        if (jb == null)
+            return;
+        if ("name".equals(jb.getString("name"))){
+            if (AOPtokens.size()>0){
+                for (AOPtoken aoPtoken : AOPtokens) {
+                    if(aoPtoken.getToken().equals(jb.getString("token"))){
+                        if (aoPtoken.getName()==null){
+                            aoPtoken.setName(jb.getString("value"));
+                        }
+                    }
+                }
+            }
+        }else if (BaseTokenVerification(session, jsonStr)){
             String returnstr = adminSocketImpl.message(session, jsonStr, onlineSessions, AOPtokens);
             TokenUtil.getNewToken(session, AOPtokens);
         }else{
@@ -80,20 +110,23 @@ public class WebSocketService {
 
     }
 
-
-
     /**
      * 当关闭连接：1.移除会话对象 2.更新在线人数
      */
     @OnClose
     public void onClose(Session session) {
+
+        for (AOPtoken aoptoken : AOPtokens){
+            if (session.getId().equals(aoptoken.getSession().getId())){
+                int a = SocketHandlerServices.proxy.UserDao.deleteTokenByName(aoptoken.getName());
+                System.out.println(a);
+            }
+//
+        }
         onlineSessions.remove(session.getId());
-        AOPtokens.removeIf(SessionId -> SessionId.getSessionID().equals(session.getId()));
-//        if (AOPtokens.isEmpty()){
-//            LogUtil.log.info("所有管理员均不在线 List重置");
-//            AOPtokens = new ArrayList<>();
-//        }
-        LogUtil.log.info("============= 客户端: "+ session.getId() +" 退出 ==============");
+        AOPtokens.removeIf(SessionId -> SessionId.getSession().getId().equals(session.getId()));
+        onlineSessions.remove(session.getId());
+        LogUtil.log.info("客户端: "+ session.getId() +" 退出");
     }
 
     /**
@@ -140,13 +173,12 @@ public class WebSocketService {
                 }
             }
         });
-//        threadSender.start();
     }
 
     private boolean BaseTokenVerification(Session session, String jsonStr){
         JSONObject jb = JSONObject.parseObject(jsonStr);
         for (AOPtoken aoPtoken : AOPtokens) {
-            if (aoPtoken.getSessionID().equals(session.getId())) {
+            if (aoPtoken.getSession().getId().equals(session.getId())) {
                 if (aoPtoken.getToken().equals(jb.getString("token"))) {
                     return true;
                 }

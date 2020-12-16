@@ -22,6 +22,7 @@ public class UserUserImpl implements UserService {
     UserModel userModel;
     @Autowired
     UserDao userDao;
+    @Override
     public int doRegister(String name, String passwd, String email, String UUID){
         String tmp_psaa =
                 DigestUtils.md5DigestAsHex(passwd.getBytes()) +
@@ -78,12 +79,14 @@ public class UserUserImpl implements UserService {
             }
         }
     }
+    @Override
     public void doLogout(String name){
         if (name!=null){
             userDao.deleteTokenByName(name);
         }
     }
 
+    @Override
     public UserLoginModel doAutoLogin(String token) {
         if(!"null".equals(token)){
             String name = userDao.selectAutoByToken(token);

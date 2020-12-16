@@ -3,6 +3,7 @@ package minecraftserveradmin.core.controller;
 import minecraftserveradmin.core.services.GetModListService;
 import minecraftserveradmin.core.services.SaveFileService;
 import minecraftserveradmin.core.services.impl.SaveAsModImpl;
+import minecraftserveradmin.core.util.ErrorCode;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -50,16 +51,17 @@ public class ModSettingContorller {
     //mod上传
     @ResponseBody
     @PostMapping("/admin/upfilemods")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public int uploadFile(@RequestParam("file") MultipartFile file) {
         if (file!= null && file.isEmpty()){
-            return "error 没有选择文件？";
+            return ErrorCode.NO_FILE_UPDATE;
         }
         try {
+            assert file != null;
             saveAsMod.save(file);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "success !!";
+        return ErrorCode.FILE_UPDATE_SUCCESS;
     }
 
 

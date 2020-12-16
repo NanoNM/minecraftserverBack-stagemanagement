@@ -11,6 +11,7 @@ public class ModModel {
     List<String> modAuthors;
     String modVersion;
 
+    String status;
     boolean isdisable;
     boolean isremoved;
 
@@ -60,5 +61,13 @@ public class ModModel {
 
     public void setIsdisable(boolean isdisable) {
         this.isdisable = isdisable;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

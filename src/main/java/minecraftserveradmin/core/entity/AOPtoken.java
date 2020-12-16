@@ -2,18 +2,29 @@ package minecraftserveradmin.core.entity;
 
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
+import javax.websocket.Session;
+
 @EntityScan
 public class AOPtoken {
-    private String SessionID;
+    private Session session;
     private String token;
+    private String name;
     private boolean band;
 
-    public String getSessionID() {
-        return SessionID;
+    public String getName() {
+        return name;
     }
 
-    public void setSessionID(String sessionID) {
-        SessionID = sessionID;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Session getSession() {
+        return session;
+    }
+
+    public void setSession(Session session) {
+        this.session = session;
     }
 
     public String getToken() {

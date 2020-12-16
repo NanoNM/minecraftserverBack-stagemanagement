@@ -36,11 +36,14 @@ public class GetPluginsListService {
                 }catch (Exception e){
 
                 }
+                p.setStatus("normal");
                 if (f.getName().indexOf("disable") > 0){
                     p.setIsdisable(true);
+                    p.setStatus("disable");
                 }
                 if (f.getName().indexOf("removed") > 0){
                     p.setIsremoved(true);
+                    p.setStatus("removed");
                 }
                 plugList.add(p);
             }

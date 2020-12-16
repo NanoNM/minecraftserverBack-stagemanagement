@@ -36,13 +36,15 @@ public class TokenUtil {
     public static void getNewToken(Session session, List<AOPtoken> AOPtokens) {
         String testString = TokenUtil.getRandomString();
         AOPtoken aoPtoken = new AOPtoken();
-        aoPtoken.setSessionID(session.getId());
+        aoPtoken.setSession(session);
         aoPtoken.setToken(testString);
         aoPtoken.setBand(false);
-        AOPtokens.removeIf(SessionId -> SessionId.getSessionID().equals(session.getId()));
+        AOPtokens.removeIf(Session -> Session.getSession().getId().equals(session.getId()));
         AOPtokens.add(aoPtoken);
         try {
-            session.getBasicRemote().sendText("{\"Authentication\":\"" + testString + "\"}");
+            synchronized (session){
+                session.getBasicRemote().sendText("{\"Authentication\":\"" + testString + "\"}");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -15,6 +15,7 @@ public class ErrorCodeService {
         errorCodeBuffer.append("{\"info\": \"errorCode\",\"codes\":{");
         Field[] fields = ErrorCode.class.getFields();
         for (int i = 0;i<fields.length;i++){
+//            errorCodeBuffer.append("\"").append(getConst(fields[i].getName())).append("\":\"").append(fields[i].getName()).append("\"");
             errorCodeBuffer.append("\"").append(fields[i].getName()).append("\":\"").append(getConst(fields[i].getName())).append("\"");
             if (i != fields.length-1){
                 errorCodeBuffer.append(",");

@@ -34,12 +34,15 @@ public class GetModListService {
                 try{
                     m.setModFilename(f.getName().split(".jar")[0]);
                 }catch (Exception e){
-
+                    e.printStackTrace();
                 }
+                m.setStatus("normal");
                 if (f.getName().indexOf("disable") > 0){
+                    m.setStatus("disable");
                     m.setIsdisable(true);
                 }
                 if (f.getName().indexOf("removed") > 0){
+                    m.setStatus("removed");
                     m.setIsremoved(true);
                 }
                 modModelList.add(m);
@@ -84,8 +87,8 @@ public class GetModListService {
                 if (f.getName().contains(filename) && f.isFile()) {
                     try(FileInputStream input = new FileInputStream("./mods/"+f.getName());
                         //获取ZIP输入流(一定要指定字符集Charset.forName("GBK")否则会报java.lang.IllegalArgumentException: MALFORMED)
-                        ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(input), Charset.forName("UTF8"))//定义ZipEntry置为null,避免由于重复调用zipInputStream.getNextEntry造成的不必要的问题
-                        ){
+                        ZipInputStream zipInputStream = new ZipInputStream(new BufferedInputStream(input), Charset.forName("UTF8"))){
+                        //定义ZipEntry置为null,避免由于重复调用zipInputStream.getNextEntry造成的不必要的问题
                         //循环遍历
                         ZipEntry ze = null;
                         while ((ze = zipInputStream.getNextEntry()) != null) {

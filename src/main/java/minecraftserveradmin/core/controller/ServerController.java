@@ -1,15 +1,11 @@
 package minecraftserveradmin.core.controller;
 
-import com.alibaba.fastjson.JSONObject;
 import minecraftserveradmin.core.services.FormatServerSettingService;
 import minecraftserveradmin.core.services.RunServerService;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
 
@@ -88,9 +84,21 @@ public class ServerController {
      * @throws IOException 无
      */
     @ResponseBody
-    @RequestMapping("/admin/setsetting")
-    public boolean setSetting(@RequestBody JSONObject jsonParam) throws IOException {
-        formatServerSettingService.settingFormat(jsonParam);
-        return true;
+    @GetMapping("/admin/setsetting")
+    public boolean setSetting(@RequestParam("jsonstr") String jsonParam) {
+        try {
+            formatServerSettingService.settingFormat(jsonParam);
+            return true;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
     }
+
+//    @ResponseBody
+//    @GetMapping("/admin/setsetting")
+//    public boolean setSetting(@Param("jsonstr") JSONObject jsonParam) throws IOException {
+////        formatServerSettingService.settingFormat(jsonParam);
+//        return true;
+//    }
 }

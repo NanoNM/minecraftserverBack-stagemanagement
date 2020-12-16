@@ -31,27 +31,18 @@ public class FormatServerSettingService {
         return jsonStr;
     }
 
-    public void settingFormat(JSONObject jsonParam) throws IOException {
+    public void settingFormat(String jsonStr) throws Exception {
+        JSONObject jsonParam = JSONObject.parseObject(jsonStr);
         jsonToProp(jsonParam,"./server.properties");
     }
 
-    public  void jsonToProp(JSONObject jsonObject,String Path) {
+    public  void jsonToProp(JSONObject jsonObject,String Path) throws IOException {
         Map<String, Object> map= jsonObject.getInnerMap();
         Properties properties=new Properties();
         for (String key : map.keySet()) {
             properties.setProperty(key, map.get(key).toString());
         }
-        try {
-            OutputStream fos = new FileOutputStream(Path);
-            System.err.println(properties.toString());
-            try {
-                properties.store(fos, properties.toString());
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        OutputStream fos = new FileOutputStream(Path);
+        properties.store(fos, properties.toString());
     }
 }

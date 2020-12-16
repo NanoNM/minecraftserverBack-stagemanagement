@@ -1,5 +1,6 @@
 package minecraftserveradmin.core.services.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.AOPtoken;
@@ -22,12 +23,20 @@ import java.util.Map;
 public class AdminSocketImpl implements SocketRelatedService {
     private static String testString;
     private static final RunServerService runServerService = new RunServerService();
+    private static final GetServerInfoService getServerInfoService = new GetServerInfoService();
     private static final FormatServerSettingService formatServerSettingService = new FormatServerSettingService();
+
     @Autowired
     UserDao userDao;
 
-    @Autowired
-    GetServerInfoService getServerInfoService;
+    static public String serverInfoSender;
+
+    public void sendStatusToConnect(Session session) throws IOException, InterruptedException {
+        Thread.sleep(2000);
+        String message = "{\"ServerStat\":\"" + runServerService.getServerIsOpen().toString() + "\"}";
+        session.getBasicRemote().sendText(message);
+    }
+
     public String message(Session session, String jsonStr, Map<String, Session> onlineSessions, List<AOPtoken> AOPtokens){
         JSONObject jb = JSONObject.parseObject(jsonStr);
         if (jb==null)
@@ -38,39 +47,19 @@ public class AdminSocketImpl implements SocketRelatedService {
         if (onlineUser == null || onlineUser == 0){
             try {
                 onlineSessions.remove(session.getId());
-                AOPtokens.removeIf(SessionId -> SessionId.getSessionID().equals(session.getId()));
+                AOPtokens.removeIf(SessionId -> SessionId.getSession().getId().equals(session.getId()));
                 session.getBasicRemote().sendText("{\"ERROR\":\"" + ErrorCode.USER_NOT_ONLINE + "\"}");
-                LogUtil.log.warn("============= 侦测到企图未登陆请求 ==============");
+                LogUtil.log.warn("侦测到企图未登陆请求");
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return jsonStr;
         }
-        if ("Server".equals(jb.getString("name"))){
-            if("getServerStat".equals(jb.getString("value"))){
-                try {
-                    session.getBasicRemote().sendText("{\"ServerStat\":\"" + runServerService.getServerIsOpen() + "\"}");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-//        if ("beat".equals(jb.getString("name"))){
-//            return jb.getString("value");
-//        }
         if ("cmd".equals(jb.getString("name"))){
             runServerService.doCom(jb.getString("value"));
         }
-//        if ("Server".equals(jb.getString("name"))){
-//            getNewToken(session, AOPtokens);
-//            try {
-//                session.getBasicRemote().sendText("{\"Authentication\":\"" + testString + "\"}");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
         if ("message".equals(jb.getString("name"))) {
-            System.out.println(jb.getString("value"));
+//            System.out.println(jb.getString("value"));
             if (jb.getString("value").equals("SocketClosed")){
                 try {
                     session.close();
@@ -79,21 +68,69 @@ public class AdminSocketImpl implements SocketRelatedService {
                 }
             }
         }
-//        if ("getServerInfo".equals(jb.getString("name"))) {
-//            try {
-//                session.getBasicRemote().sendObject(getServerInfoService.setModel());
-//            } catch (Exception ignored) {
-//                ignored.printStackTrace();
-//            }
-//        }
         return null;
+    }
+    public static void mcServerStateSender(Map<String, Session> onlineSessions){
+        Thread mcServerStateSender = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int index = -1;
+                while(true){
+                    int index2 = runServerService.getServerIsOpen();
+                    if (index2!=index && onlineSessions.size()>0){
+                        for (String key:onlineSessions.keySet()) {
+                            try {
+                                synchronized(onlineSessions.get(key)){
+                                    onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
+                                }
+                                onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
+                                index = index2;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                    try {
+                        Thread.sleep(Integer.parseInt(serverInfoSender));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        mcServerStateSender.start();
+    }
+
+    public static void ServerInfoSender(Map<String, Session> onlineSessions){
+        Thread ServerInfoSender = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int index = -1;
+                while(true){
+                    for (String key:onlineSessions.keySet()) {
+                        try {
+                            synchronized(onlineSessions.get(key)){
+                                onlineSessions.get(key).getBasicRemote().sendText("{\"systemInfo\":[" + JSON.toJSONString(getServerInfoService.setModel()) + "]}");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+        ServerInfoSender.start();
     }
 
     public static void authenticationThreadReader(List<AOPtoken> aoPtokens, Map<String, Session> onlineSessions) {
         Thread authenticationThreadReader = new Thread(new Runnable() {
             int size = 0;
             Long startTs = System.currentTimeMillis();
-
             @Override
             public void run() {
                 while (true) {
@@ -104,7 +141,7 @@ public class AdminSocketImpl implements SocketRelatedService {
                         size = size2;
                         onlineSessions.forEach((id, session) -> {
                             try {
-                                LogUtil.log.info("============= 向客户端: " + id + " 更新token ==============");
+                                LogUtil.log.info("向客户端: " + id + " 更新token");
                                 synchronized (session) {
                                     TokenUtil.getNewToken(session, aoPtokens);
                                 }
@@ -113,20 +150,12 @@ public class AdminSocketImpl implements SocketRelatedService {
                             }
                         });
                     }
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
-//                while(true){
-//                    if(!onlineSessions){
-//                        LogUtil.log.info("============= 向所有客户端发起一次验证 ==============");
-//                        testString = TokenUtil.getRandomString();
-//                        sendMessageToAll("{\"onlineAdmin\":\""+onlineSessions.size()+"\"}");
-//                        sendMessageToAll();
-//                        try {
-//                            Thread.sleep(1000);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
             }
         });
         authenticationThreadReader.start();
@@ -168,6 +197,11 @@ public class AdminSocketImpl implements SocketRelatedService {
                                 sendMessageToAll(jsonObject.toJSONString(), onlineSessions);
                             }
                         }
+                    }
+                    try {
+                        Thread.sleep(250);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 }
             }
