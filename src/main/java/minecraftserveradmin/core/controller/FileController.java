@@ -1,14 +1,18 @@
 package minecraftserveradmin.core.controller;
 
-import minecraftserveradmin.core.services.impl.FIleOperationImpl;
 import minecraftserveradmin.core.services.impl.NewFIleOperationImpl;
-import org.apache.ibatis.annotations.Param;
+import minecraftserveradmin.core.util.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Controller
@@ -19,7 +23,7 @@ public class FileController {
     NewFIleOperationImpl fIleOperation;
     @ResponseBody
     @GetMapping("/admin/file")
-    private List fileManger(@Param("path") String path){
+    private List fileManger(@RequestParam(value = "path",required = false) String path){
         if (path == null){
             try {
                 return fIleOperation.rootDir();
@@ -30,16 +34,27 @@ public class FileController {
         }else{
             try {
                 return fIleOperation.getFIle(path);
-//                String[] arrays = System.getProperty("user.dir").split("\\\\");
-//                String rootDir = arrays[arrays.length-1];
-//                if (path.indexOf(rootDir) > 0){
-//
-//                }
-//                return null; //这里要返回一个错误代码
             } catch (IOException e) {
                 e.printStackTrace();
                 return null;
             }
+        }
+    }
+    @ResponseBody
+    @GetMapping("/admin/renameFile")
+    private Integer fileRename(@RequestParam(value = "path") String path,@RequestParam(value = "rename")String name){
+        if (fIleOperation.renameFile(path, name)){
+            return ErrorCode.FILE_RENAME_SUCCESS;
+        }
+        return ErrorCode.FILE_RENAME_ERROR;
+    }
+    @ResponseBody
+    @GetMapping("/admin/download")
+    private void fileDownloader(@RequestParam(value = "path") String path,HttpServletRequest request, HttpServletResponse response){
+        try {
+            fIleOperation.fileDownloader(path, request, response);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
     }
 }

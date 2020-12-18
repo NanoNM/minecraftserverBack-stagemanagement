@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.AOPtoken;
+import minecraftserveradmin.core.entity.OlineUserModel;
 import minecraftserveradmin.core.services.FormatServerSettingService;
 import minecraftserveradmin.core.services.GetServerInfoService;
 import minecraftserveradmin.core.services.RunServerService;
@@ -37,14 +38,28 @@ public class AdminSocketImpl implements SocketRelatedService {
         session.getBasicRemote().sendText(message);
     }
 
+    boolean testOnline(String name){
+        for (OlineUserModel s : UserAdministeredImpl.onlineadmin) {
+            if (s.getUserID().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public String message(Session session, String jsonStr, Map<String, Session> onlineSessions, List<AOPtoken> AOPtokens){
         JSONObject jb = JSONObject.parseObject(jsonStr);
         if (jb==null)
             return null;
         String username = jb.getString("username");
 
-        Integer onlineUser = userDao.selectOnlineByName(username);
-        if (onlineUser == null || onlineUser == 0){
+        boolean flag = testOnline(username);
+
+//        Integer onlineUser = userDao.selectOnlineByName(username);
+
+//        System.out.println(onlineUser);
+
+        if (!flag){
             try {
                 onlineSessions.remove(session.getId());
                 AOPtokens.removeIf(SessionId -> SessionId.getSession().getId().equals(session.getId()));

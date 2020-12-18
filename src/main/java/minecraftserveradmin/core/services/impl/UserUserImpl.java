@@ -89,16 +89,16 @@ public class UserUserImpl implements UserService {
     @Override
     public UserLoginModel doAutoLogin(String token) {
         if(!"null".equals(token)){
-            String name = userDao.selectAutoByToken(token);
-            if (name!=null){
-                userModel = userDao.selectUser(name);
-                UserLoginModel userLoginModel = new UserLoginModel();
-                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
-                userModel.setUUID(null);
-                userModel.setPasswd(null);
-                userLoginModel.setUserModel(userModel);
-                return userLoginModel;
-            }
+//            String name = userDao.selectAutoByToken(token);
+//            if (name!=null){
+//                userModel = userDao.selectUser(name);
+//                UserLoginModel userLoginModel = new UserLoginModel();
+//                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+//                userModel.setUUID(null);
+//                userModel.setPasswd(null);
+//                userLoginModel.setUserModel(userModel);
+//                return userLoginModel;
+//            }
         }
         return null;
     }

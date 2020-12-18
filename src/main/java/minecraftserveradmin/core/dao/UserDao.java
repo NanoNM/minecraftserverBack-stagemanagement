@@ -22,10 +22,10 @@ public interface UserDao {
 
     @Select("select * from user where user_name=#{name}")
     UserModel selectUser(String name);
-    @Select("select name from autologin where token=#{token}")
-    String selectAutoByToken(String token);
-    @Select("select id from autologin where name=#{name}")
-    Integer selectOnlineByName(String name);
+//    @Select("select name from autologin where token=#{token}")
+//    String selectAutoByToken(String token);
+//    @Select("select id from autologin where name=#{name}")
+//    Integer selectOnlineByName(String name);
 
 
 

@@ -1,6 +1,7 @@
 package minecraftserveradmin.core.services.impl;
 
 import minecraftserveradmin.core.dao.UserDao;
+import minecraftserveradmin.core.entity.OlineUserModel;
 import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
 import minecraftserveradmin.core.services.UserService;
@@ -12,9 +13,18 @@ import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
 public class UserAdministeredImpl implements UserService {
+    /**
+     * 废弃数据库存储在线管理员 使用Map存储管理员
+     */
+    public static final List<OlineUserModel> onlineadmin = new CopyOnWriteArrayList<>();
+
     @Autowired
     TokenUtil tokenUtil;
 
@@ -32,9 +42,21 @@ public class UserAdministeredImpl implements UserService {
 //        }
         return (0);
     }
+
+    boolean testOnline(String name){
+        for (OlineUserModel s : UserAdministeredImpl.onlineadmin) {
+            if (s.getUserID().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
-        Integer index = userDao.selectOnlineByName(name);;
-        if (index != null){
+//        Integer index = userDao.selectOnlineByName(name);
+
+        boolean flag = testOnline(name);
+        if (flag){
             UserLoginModel userLoginModel = new UserLoginModel();
             userLoginModel.setCode(ErrorCode.ADMIN_EARLY_ONLINE);
             return userLoginModel;
@@ -68,8 +90,9 @@ public class UserAdministeredImpl implements UserService {
                 userModel.setPasswd(null);
                 Cookie ConnectCookie = tokenUtil.getAutoLoginToken();
                 response.addCookie(ConnectCookie);
-                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
+//                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
                 userLoginModel.setUserModel(userModel);
+                onlineadmin.add(new OlineUserModel(name, null));
                 return userLoginModel;
             }else{
                 UserLoginModel userLoginModel = new UserLoginModel();

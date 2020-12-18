@@ -13,13 +13,15 @@ import java.io.IOException;
 @Service
 public class SaveAsPluginImpl implements SaveFileService {
     @Override
-    public void save(MultipartFile file) {
+    public boolean save(MultipartFile file) {
         try {
             String mainpath = System.getProperty("user.dir");
             File file1 = new File(mainpath+"/plugins/"+file.getOriginalFilename());
             file.transferTo(file1);//保存文件
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

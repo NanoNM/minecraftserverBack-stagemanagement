@@ -3,6 +3,7 @@ package minecraftserveradmin.core.controller;
 import minecraftserveradmin.core.services.GetPluginsListService;
 import minecraftserveradmin.core.services.SaveFileService;
 import minecraftserveradmin.core.services.impl.SaveAsPluginImpl;
+import minecraftserveradmin.core.util.ErrorCode;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -54,17 +55,17 @@ public class PluginsSettingController {
     //mod上传
     @ResponseBody
     @PostMapping("/admin/upfileplugins")
-    public String uploadFile(@RequestParam("file") MultipartFile file) {
+    public int uploadFile(@RequestParam("file") MultipartFile file) {
         if (file!= null && file.isEmpty()){
-            return "error 没有选择文件？";
+            return ErrorCode.NO_FILE_UPDATE;
         }
         try {
             saveAsPlugin.save(file);
         } catch (Exception e) {
             e.printStackTrace();
-            return "500 Error";
+            return ErrorCode.NO_FILE_UPDATE;
         }
-        return "success !!";
+        return ErrorCode.FILE_UPDATE_SUCCESS;
     }
 
 

@@ -20,6 +20,13 @@
     </properties>
 
     <dependencies>
+        <!--        https://mvnrepository.com/artifact/org.apache.any23/apache-any23-encoding-->
+        <dependency>
+            <groupId>org.apache.any23</groupId>
+            <artifactId>apache-any23-encoding</artifactId>
+            <version>2.4</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

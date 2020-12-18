@@ -8,5 +8,5 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Service
 public interface SaveFileService {
-    void save(MultipartFile file);
+    boolean save(MultipartFile file);
 }

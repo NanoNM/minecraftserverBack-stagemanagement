@@ -60,6 +60,7 @@ public class ModSettingContorller {
             saveAsMod.save(file);
         } catch (Exception e) {
             e.printStackTrace();
+            return ErrorCode.NO_FILE_UPDATE;
         }
         return ErrorCode.FILE_UPDATE_SUCCESS;
     }
