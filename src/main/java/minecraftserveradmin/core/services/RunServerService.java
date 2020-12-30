@@ -10,6 +10,8 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+import static minecraftserveradmin.core.util.TimeUtil.MCServerStartTime;
+
 @Service
 public class RunServerService {
     int a = 1;
@@ -47,6 +49,7 @@ public class RunServerService {
             Thread threadReader = new Thread(new Runnable() {
                 @Override
                 public void run(){
+                    MCServerStartTime = System.currentTimeMillis();
                     LogUtil.log.info("我的世界服务器启动");
                     InputStream inputStream = process.getInputStream();
                     BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
@@ -59,6 +62,7 @@ public class RunServerService {
                         inputStream.close();
                         process.destroy();
                         LogUtil.log.info("我的世界服务器关闭");
+                        MCServerStartTime = -1;
                     }catch (Exception e){ LogUtil.log.error(e.getMessage()); }
                 }
             });

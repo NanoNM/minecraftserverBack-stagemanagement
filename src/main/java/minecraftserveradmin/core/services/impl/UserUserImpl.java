@@ -22,19 +22,25 @@ public class UserUserImpl implements UserService {
     UserModel userModel;
     @Autowired
     UserDao userDao;
+//    @Override
+//    public int doRegister(String name, String passwd, String email, String UUID){
+//        String tmp_psaa =
+//                DigestUtils.md5DigestAsHex(passwd.getBytes()) +
+//                        DigestUtils.md5DigestAsHex(UUID.getBytes()) +
+//                        DigestUtils.md5DigestAsHex(passwd.getBytes());
+//        String pass = DigestUtils.md5DigestAsHex(tmp_psaa.getBytes());
+//        if(userDao.selectUser(name) == null){
+//            if (userDao.insertUser(name,email,pass,"def",1,UUID) == 1)
+//                return ErrorCode.REGISTER_SUCCESS;
+//        }
+//        return (ErrorCode.SAME_USER_NAME);
+//    };
+
     @Override
-    public int doRegister(String name, String passwd, String email, String UUID){
-        String tmp_psaa =
-                DigestUtils.md5DigestAsHex(passwd.getBytes()) +
-                        DigestUtils.md5DigestAsHex(UUID.getBytes()) +
-                        DigestUtils.md5DigestAsHex(passwd.getBytes());
-        String pass = DigestUtils.md5DigestAsHex(tmp_psaa.getBytes());
-        if(userDao.selectUser(name) == null){
-            if (userDao.insertUser(name,email,pass,"def",1,UUID) == 1)
-                return ErrorCode.REGISTER_SUCCESS;
-        }
-        return (ErrorCode.SAME_USER_NAME);
-    };
+    public Integer doAdminRegister(String adminName, String name, String passwd, String email) {
+        return 0;
+    }
+
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
 //        System.err.println(name);
 //        System.err.println(pass);

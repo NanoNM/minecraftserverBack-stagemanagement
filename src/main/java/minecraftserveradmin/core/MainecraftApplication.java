@@ -1,13 +1,16 @@
 package minecraftserveradmin.core;
 
+import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.util.LogUtil;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+
 
 @MapperScan(value = "minecraftserveradmin.core.dao")
 @SpringBootApplication
@@ -22,4 +25,6 @@ public class MainecraftApplication {
         factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> connector.setProperty("relaxedQueryChars", "|{}[]\\"));
         return factory;
     }
+
+
 }

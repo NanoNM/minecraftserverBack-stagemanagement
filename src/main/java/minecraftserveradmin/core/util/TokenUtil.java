@@ -49,4 +49,12 @@ public class TokenUtil {
             e.printStackTrace();
         }
     }
+    public static String getPassword(String defaultAdministratorPassword, String uuid){
+        String tmp_pass =
+                DigestUtils.md5DigestAsHex(defaultAdministratorPassword.getBytes()) +
+                        DigestUtils.md5DigestAsHex(uuid.getBytes()) +
+                        DigestUtils.md5DigestAsHex(defaultAdministratorPassword.getBytes());
+        String pass = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
+        return pass;
+    }
 }

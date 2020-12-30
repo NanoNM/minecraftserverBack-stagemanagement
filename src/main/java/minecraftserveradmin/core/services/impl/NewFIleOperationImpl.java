@@ -3,13 +3,16 @@ package minecraftserveradmin.core.services.impl;
 import minecraftserveradmin.core.entity.NewFileModel;
 import minecraftserveradmin.core.services.NewFileOperationService;
 import minecraftserveradmin.core.util.CharsetUtil;
-import minecraftserveradmin.core.util.LogUtil;
+import minecraftserveradmin.core.util.ErrorCode;
+import minecraftserveradmin.core.util.GCUtil;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.URLEncoder;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,42 +48,26 @@ public class NewFIleOperationImpl implements NewFileOperationService {
 
             // 实现文件下载
             byte[] buffer = new byte[4096];
-            FileInputStream fis = null;
-            BufferedInputStream bis = null;
-            try {
-                fis = new FileInputStream(file);
-                bis = new BufferedInputStream(fis);
+//            FileInputStream fis = null;
+//            BufferedInputStream bis = null;
+            try (FileInputStream fis = new FileInputStream(file);
+                 BufferedInputStream bis = new BufferedInputStream(fis)){
+
                 OutputStream os = httpResponse.getOutputStream();
                 int i = bis.read(buffer);
                 while (i != -1) {
                     os.write(buffer, 0, i);
                     i = bis.read(buffer);
                 }
-                LogUtil.log.info("文件下载成功");
+                GCUtil.doGC();
             }
             catch (Exception e) {
                 e.printStackTrace();
             }
-            finally {
-                if (bis != null) {
-                    try {
-                        bis.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-                if (fis != null) {
-                    try {
-                        fis.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
         }
     }
 
-    public List rootDir() throws IOException {
+    public List rootDir() {
         List<NewFileModel> fileModelList = new ArrayList<>();
         File file = new File(projectPath);
         File[] fs = file.listFiles();	//遍历path下的文件和目录，放在File数组中
@@ -92,10 +79,15 @@ public class NewFIleOperationImpl implements NewFileOperationService {
             {
                 String fileTyle = "";
                 try {
-                    fileTyle = f.getName().substring(f.getName().lastIndexOf("."));
+                    try{
+                        fileTyle = f.getName().substring(f.getName().lastIndexOf("."));
+                    }catch (StringIndexOutOfBoundsException se){
+                        fileTyle = null;
+                    }
                     NewFileModel fileModel = new NewFileModel(f.getName(),fileTyle,1,f.length(),null, null, s, null);
                     fileModelList.add(fileModel);
-                }catch (Exception ignored){
+                }catch (Exception e){
+                    e.printStackTrace();
                 }
             }else {
                 NewFileModel fileModel = new NewFileModel(f.getName(),"",0,0,null,null, s, null);
@@ -117,6 +109,7 @@ public class NewFIleOperationImpl implements NewFileOperationService {
                 try {
                     fileTyle = f.getName().substring(f.getName().lastIndexOf("."));
                 }catch (Exception ignored){
+                    fileTyle = null;
                 }
                 NewFileModel fileModel = new NewFileModel(f.getName(),fileTyle,1,f.length(),getFather(f.getPath()), null, s, null);
                 fileModelList.add(fileModel);
@@ -136,17 +129,114 @@ public class NewFIleOperationImpl implements NewFileOperationService {
     }
 
     private boolean reNameFile(String path,String name) throws IOException {
-        // 旧的文件或目录
         File oldName = new File(path);
-        // 新的文件或目录
         File newName = new File(name);
-        if (newName.exists()) {  //  确保新的文件名不存在
-            throw new java.io.IOException("文件已存在");
+        if (newName.exists()) {
+            throw new java.io.IOException("文件已存在" + newName);
         }
         if(oldName.renameTo(newName)) {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public boolean fileEditor(String path, String str){
+        File f = new File(path);
+        try (OutputStream os = new FileOutputStream(f);){
+            os.write(str.getBytes());
+            os.flush();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean fileDelete(String path) {
+        File f = new File(path);
+        return doDelete(f);
+    }
+    private boolean doDelete(File f){
+        if (f.isDirectory()){
+            boolean flag = false;
+            File[] fs = f.listFiles();
+            if (fs!=null){
+                for (File file:fs){
+                    if (file.isDirectory()){
+                        doDelete(file);
+                    }
+                    flag = file.delete();
+                }
+            }else{
+                return f.delete();
+            }
+            if (flag){
+                return f.delete();
+            }
+        }
+        if(f.exists()) {
+            return f.delete();
+        }
+        return false;
+    }
+
+    public Integer mkdir(String path) {
+        File f = new File(path);
+        if(f.exists()){
+            return ErrorCode.FOLDER_ALREADY_EXISTS;
+        }
+        boolean flag = f.mkdir();
+        if (flag){
+            return ErrorCode.FOLDER_CREATED_SUCCESSFULLY;
+        }
+        return ErrorCode.FOLDER_CREATED_FAIL;
+    }
+
+    public Integer makeFile(String path) {
+        File f = new File(path);
+        if(f.exists()){
+            return ErrorCode.FILE_ALREADY_EXISTS;
+        }
+        boolean flag = false;
+        try {
+            flag = f.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ErrorCode.FILE_CREATED_FAIL;
+        }
+        if (flag){
+            return ErrorCode.FILE_CREATED_SUCCESSFULLY;
+        }
+        return ErrorCode.FILE_CREATED_FAIL;
+    }
+
+    public Integer fileCopy(String source, String dest) {
+        File f = new File(source);
+        File f2 = new File(dest);
+        try {
+            Files.copy(f.toPath(), f2.toPath());
+            return ErrorCode.FILE_COPY_SUCCESS;
+        } catch (FileAlreadyExistsException e) {
+            return ErrorCode.FILE_ALREADY_EXISTS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ErrorCode.FILE_COPY_FAIL;
+        }
+    }
+
+    public Integer fileMove(String source, String dest) {
+        File f = new File(source);
+        File f2 = new File(dest);
+        try {
+            Files.copy(f.toPath(), f2.toPath());
+            f.delete();
+            return ErrorCode.FILE_MOVE_SUCCESS;
+        } catch (FileAlreadyExistsException e) {
+            return ErrorCode.FILE_ALREADY_EXISTS;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ErrorCode.FILE_MOVE_FAIL;
         }
     }
 }

@@ -9,6 +9,42 @@ public class ServerInfoModel {
     private String cpuInfo;
     private Integer cpuUserInfo;
     private Integer memoryUserInfo;
+    private String springBootRunningTime;
+    private String springBootStartTime;
+    private String mcServerRunningTime;
+    private String mcServerStartTime;
+
+    public String getSpringBootStartTime() {
+        return springBootStartTime;
+    }
+
+    public void setSpringBootStartTime(String springBootStartTime) {
+        this.springBootStartTime = springBootStartTime;
+    }
+
+    public String getMcServerRunningTime() {
+        return mcServerRunningTime;
+    }
+
+    public void setMcServerRunningTime(String mcServerRunningTime) {
+        this.mcServerRunningTime = mcServerRunningTime;
+    }
+
+    public String getMcServerStartTime() {
+        return mcServerStartTime;
+    }
+
+    public void setMcServerStartTime(String mcServerStartTime) {
+        this.mcServerStartTime = mcServerStartTime;
+    }
+
+    public String getSpringBootRunningTime() {
+        return springBootRunningTime;
+    }
+
+    public void setSpringBootRunningTime(String springBootRunningTime) {
+        this.springBootRunningTime = springBootRunningTime;
+    }
 
     public String getSystemInfo() {
         return systemInfo;

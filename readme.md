@@ -6,10 +6,10 @@
     
     注意 绝大多数的管理操作已经改为socket访问
     
-### 因为硬件原因导致硬盘损坏 前段代码已经损坏 前段页面重新设计中 https://github.com/NanoNM/Mine
+### 因为硬件原因导致硬盘损坏 前段代码已经损坏 
+    前段页面重新设计中 https://github.com/NanoNM/Mine
     
 ### 个个接口和使用说明(早起版本 现已不适用)
-    
     main.core
             |controller 
                       |CorsConfog 用来通过跨域名访问
@@ -36,9 +36,28 @@
                       |SaveFileService 文件保存接口
             |util
                       |LogUtil 日志保存
-                      
-    希望大佬给我提些建议 
-    个人邮箱 wfprivate@outlook.com
-    个人QQ 270884295          
+                  
+###错误代码类
+    
+        public static final Integer LOGIN_SUCCESS = 1000;
+        public static final Integer REGISTER_SUCCESS = 1001;
+        public static final Integer FILE_UPDATE_SUCCESS = 1002;
+        public static final Integer FILE_RENAME_SUCCESS = 1003;
+        public static final Integer FILE_DOWNLOAD_SUCCESS = 1004;
+        public static final Integer FILE_EDIT_SUCCES = 1005;
+    
+        public static final Integer SAME_USER_NAME = 1102;
+        public static final Integer NO_USER_FIND = 1103;
+        public static final Integer WRONG_PASSWORD = 1104;
+        public static final Integer USER_NOT_ONLINE = 1105;
+        public static final Integer ADMIN_EARLY_ONLINE = 1106;
+        public static final Integer NO_FILE_UPDATE = 1107;
+        public static final Integer FILE_RENAME_ERROR= 1108;
+        public static final Integer FILE_DOWNLOAD_ERROR = 1009;
+        public static final Integer FILE_EDIT_FAIL = 1110;
+         
+希望大佬给我提些建议 
+个人邮箱 wfprivate@outlook.com
+个人QQ 270884295          
             
                             

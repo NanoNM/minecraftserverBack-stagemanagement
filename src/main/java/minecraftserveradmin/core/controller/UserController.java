@@ -16,16 +16,13 @@ public class UserController {
     UserUserImpl userUserImpl;
     @Autowired
     UserAdministeredImpl userAdministeredImpl;
-    @PostMapping("/register")
-    public String userRegister(@RequestParam("name") String name,
+    @PostMapping("/admin/register")
+    public Integer userRegister(@RequestParam("adminname") String adminName,
+                               @RequestParam("regname") String name,
                                @RequestParam("passwd") String passwd,
-                               @RequestParam("email") String email,
-                               @RequestParam("UUID") String UUID
+                               @RequestParam("email") String email
                                ){
-        if (userUserImpl.doRegister(name,passwd,email,UUID) == 1){
-            return "注册成功";
-        }
-        return "注册失败";
+        return userAdministeredImpl.doAdminRegister(adminName,name,passwd,email);
     }
     @PostMapping("/login")
     public UserLoginModel userLogin(@Param("username") String name,
