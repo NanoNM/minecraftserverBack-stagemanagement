@@ -1,3 +1,8 @@
+### 请使用Linux_adapters分支中的版本master分支中代码不是被linux估计不会进一步开发
+
+
+
+
 ### Readme 
     
     欢迎使用本后端
