@@ -186,7 +186,7 @@ public class AdminSocketImpl implements SocketRelatedService {
                         while(runServerService.getServerIsOpen() == 1){
                             StringBuffer s= new StringBuffer();
                             try {
-                                File file = new File("./logs/latest.log");
+                                File file = new File("logs/latest.log");
                                 FileInputStream f = new FileInputStream(file);
                                 InputStreamReader isr = new InputStreamReader(f);
                                 BufferedReader br = new BufferedReader(isr);
