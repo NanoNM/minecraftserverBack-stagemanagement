@@ -56,7 +56,6 @@ public class UserUserImpl implements UserService {
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
             if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-
                 Cookie AutoCookie = tokenUtil.getAutoLoginToken();
                 response.addCookie(AutoCookie);
                 Cookie ConnectCookie = tokenUtil.getConnect();
@@ -108,5 +107,4 @@ public class UserUserImpl implements UserService {
         }
         return null;
     }
-
 }

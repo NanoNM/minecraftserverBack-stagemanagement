@@ -1,16 +1,34 @@
 package minecraftserveradmin.core.entity;
 
-import java.sql.Date;
+import java.sql.Timestamp;
 
 public class UserModel {
+    private Integer ID;
     private String user_name;
     private String passwd;
     private String email;
     private Integer vip_level;
     private String authority;
     private String UUID;
-    private Date create_time;
-    private Date modify_time;
+    private Timestamp create_time;
+    private Timestamp modify_time;
+    private String create_by;
+
+    public Integer getID() {
+        return ID;
+    }
+
+    public void setID(Integer ID) {
+        this.ID = ID;
+    }
+
+    public String getCreate_by() {
+        return create_by;
+    }
+
+    public void setCreate_by(String create_by) {
+        this.create_by = create_by;
+    }
 
     public String getUser_name() {
         return user_name;
@@ -60,19 +78,19 @@ public class UserModel {
         this.UUID = UUID;
     }
 
-    public Date getCreate_time() {
+    public Timestamp getCreate_time() {
         return create_time;
     }
 
-    public void setCreate_time(Date create_time) {
+    public void setCreate_time(Timestamp create_time) {
         this.create_time = create_time;
     }
 
-    public Date getModify_time() {
+    public Timestamp getModify_time() {
         return modify_time;
     }
 
-    public void setModify_time(Date modify_time) {
+    public void setModify_time(Timestamp modify_time) {
         this.modify_time = modify_time;
     }
 }

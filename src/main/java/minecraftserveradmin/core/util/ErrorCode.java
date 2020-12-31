@@ -14,8 +14,8 @@ public class ErrorCode {
     public static final Integer FILE_COPY_SUCCESS = 1009;
     public static final Integer FILE_MOVE_SUCCESS = 1010;
     public static final Integer ADMIN_REG_SUCCESS = 1011;
-
-
+    public static final Integer USER_CHANGE_PASSWORD_SUCCESS = 1012;
+    public static final Integer DELETE_ADMINUSER_SUCCESS = 1013;
 
 
     public static final Integer SAME_USER_NAME = 3002;
@@ -24,7 +24,7 @@ public class ErrorCode {
     public static final Integer USER_NOT_ONLINE = 3005;
     public static final Integer ADMIN_EARLY_ONLINE = 3006;
     public static final Integer NO_FILE_UPDATE = 3007;
-    public static final Integer FILE_RENAME_ERROR= 3008;
+    public static final Integer FILE_RENAME_ERROR = 3008;
     public static final Integer FILE_DOWNLOAD_ERROR = 3009;
     public static final Integer FILE_EDIT_FAIL = 3010;
     public static final Integer FILE_REMOVE_FILE = 3011;
@@ -37,4 +37,6 @@ public class ErrorCode {
     public static final Integer USER_NOT_ADMIN = 3018;
     public static final Integer ADMIN_ALREADY_EXISTS = 3019;
     public static final Integer ADMIN_ALREADY_FAIL = 3029;
+    public static final Integer USER_CHANGE_PASSWORD_FAIL = 3030;
+    public static final Integer DELETE_ADMINUSER_FAIL = 3031;
 }

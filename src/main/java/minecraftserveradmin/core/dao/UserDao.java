@@ -19,6 +19,8 @@ public interface UserDao {
     Integer deleteTokenByName(String name);
     @Delete("delete from autologin")
     Integer deleteAllOnLine();
+    @Delete("delete from user where user_name=#{name}")
+    Integer deleteAdminUser(String name);
 
     @Select("select * from user where user_name=#{name}")
     UserModel selectUser(String name);
@@ -26,11 +28,13 @@ public interface UserDao {
     Integer selectAdminUser(String name);
     @Select("select id from user where authority='admin'")
     Integer[] selectAdminUserWithOutName();
+    @Select("select id,user_name,create_time,modify_time,create_by from user limit #{page},#{size}")
+    UserModel[] selectAllAdmin(Integer page,Integer size);
+
+    @Update("UPDATE user SET passwd=#{passwd},modify_time=CURRENT_TIMESTAMP,UUID=#{uuid} WHERE user_name=#{username}")
+    int adminUserChangePassword(String passwd, String username,String uuid);
 //    @Select("select name from autologin where token=#{token}")
 //    String selectAutoByToken(String token);
 //    @Select("select id from autologin where name=#{name}")
 //    Integer selectOnlineByName(String name);
-
-
-
 }

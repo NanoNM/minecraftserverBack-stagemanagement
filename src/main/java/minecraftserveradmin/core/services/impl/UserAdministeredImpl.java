@@ -6,6 +6,7 @@ import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
 import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
+import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,7 +86,6 @@ public class UserAdministeredImpl implements UserService {
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
             String isAdmin = userModel.getAuthority();
-            System.out.println(isAdmin);
             if (!"admin".equals(isAdmin)){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.USER_NOT_ADMIN);
@@ -175,6 +175,31 @@ public class UserAdministeredImpl implements UserService {
     @Override
     public UserLoginModel doAutoLogin(String token) {
         return null;
+    }
+
+    public UserModel[] selectAllAdmin(Integer page) {
+        int size = 10;
+        Integer cu = (page-1)*size;
+        return userDao.selectAllAdmin(cu,size);
+    }
+
+    public Integer modifyPassword(String passwd, String username) {
+        String uuid = UUID.randomUUID().toString();
+        uuid = uuid.replace("-", "");
+        String fanlpasswd = TokenUtil.getPassword(passwd,uuid);
+        if (userDao.adminUserChangePassword(fanlpasswd,username,uuid)>0){
+            return ErrorCode.USER_CHANGE_PASSWORD_SUCCESS;
+        }
+        return ErrorCode.USER_CHANGE_PASSWORD_FAIL;
+    }
+
+    public Integer deleteAdmin(String name, String username) {
+        Integer flag = userDao.deleteAdminUser(username);
+        if (flag>0){
+            LogUtil.log.info(name + "执行了删除管理员操作! 删除了" + flag + "条数据");
+            return ErrorCode.DELETE_ADMINUSER_SUCCESS;
+        }
+        return ErrorCode.DELETE_ADMINUSER_FAIL;
     }
 
     /**
