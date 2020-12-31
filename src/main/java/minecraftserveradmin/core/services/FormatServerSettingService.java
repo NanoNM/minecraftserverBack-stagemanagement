@@ -14,7 +14,7 @@ public class FormatServerSettingService {
     public String getModel() throws IOException {
         //读取properties文件
         Properties pro = new Properties();
-        FileInputStream in = new FileInputStream("./server.properties");
+        FileInputStream in = new FileInputStream("server.properties");
         pro.load(in);
         in.close();
         //存储properties文件为map
@@ -33,7 +33,7 @@ public class FormatServerSettingService {
 
     public void settingFormat(String jsonStr) throws Exception {
         JSONObject jsonParam = JSONObject.parseObject(jsonStr);
-        jsonToProp(jsonParam,"./server.properties");
+        jsonToProp(jsonParam,"server.properties");
     }
 
     public  void jsonToProp(JSONObject jsonObject,String Path) throws IOException {

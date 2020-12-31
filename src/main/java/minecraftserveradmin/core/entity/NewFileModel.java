@@ -23,11 +23,14 @@ public class NewFileModel {
     public NewFileModel(String name, String type, int attr, long size, String father, byte[] md5, String filePath, String patent) {
         String tmp_filePath = "";
         String tmp_projectPath = "";
+        //跨平台解析
         if(testSystem.testSystem()){
             tmp_filePath = filePath.replaceAll("\\\\","/");
             tmp_projectPath = filePath.replaceAll("\\\\","/");
+            this.filePath = tmp_filePath.replaceAll(tmp_projectPath+"/","");
+        }else {
+          this.filePath = filePath;
         }
-        this.filePath = tmp_filePath.replaceAll(tmp_projectPath+"/","");
         this.name = name;
         this.type = type;
         this.attr = attr;
