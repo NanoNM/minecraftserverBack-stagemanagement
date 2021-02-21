@@ -35,7 +35,7 @@ public class UserAdministeredImpl implements UserService {
     @Autowired
     UserDao userDao;
     @Override
-    public Integer doAdminRegister(String adminName, String name, String passwd, String email){
+    public Integer doRegister(String adminName, String name, String passwd, String email){
         Integer flag = userDao.selectAdminUser(adminName);
         if(flag==null){
             return (0);
@@ -196,7 +196,7 @@ public class UserAdministeredImpl implements UserService {
     public Integer deleteAdmin(String name, String username) {
         Integer flag = userDao.deleteAdminUser(username);
         if (flag>0){
-            LogUtil.log.info(name + "执行了删除管理员操作! 删除了" + flag + "条数据");
+            LogUtil.log.info(name + "执行了删除成员操作! 删除了" + flag + "条数据");
             return ErrorCode.DELETE_ADMINUSER_SUCCESS;
         }
         return ErrorCode.DELETE_ADMINUSER_FAIL;

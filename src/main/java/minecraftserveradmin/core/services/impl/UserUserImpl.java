@@ -13,6 +13,7 @@ import org.springframework.util.DigestUtils;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 public class UserUserImpl implements UserService {
@@ -22,8 +23,6 @@ public class UserUserImpl implements UserService {
     UserModel userModel;
     @Autowired
     UserDao userDao;
-//    @Override
-//    public int doRegister(String name, String passwd, String email, String UUID){
 //        String tmp_psaa =
 //                DigestUtils.md5DigestAsHex(passwd.getBytes()) +
 //                        DigestUtils.md5DigestAsHex(UUID.getBytes()) +
@@ -34,17 +33,32 @@ public class UserUserImpl implements UserService {
 //                return ErrorCode.REGISTER_SUCCESS;
 //        }
 //        return (ErrorCode.SAME_USER_NAME);
-//    };
+//    }
 
     @Override
-    public Integer doAdminRegister(String adminName, String name, String passwd, String email) {
-        return 0;
+    public Integer doRegister(String regName, String name, String passwd, String email) {
+        Integer flag = userDao.selectAdminUser(regName);
+        if(flag==null){
+            return ErrorCode.ADMIN_ALREADY_FAIL;
+        }
+        String uuid = UUID.randomUUID().toString();
+        uuid = uuid.replace("-", "");
+        String tmp_pass =
+                        DigestUtils.md5DigestAsHex(passwd.getBytes()) +
+                        DigestUtils.md5DigestAsHex(uuid.getBytes()) +
+                        DigestUtils.md5DigestAsHex(passwd.getBytes());
+        String pass = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
+        if(userDao.selectUser(name) == null){
+            if (userDao.insertAdminUser(name,email,pass,"user",1,uuid,regName) == 1){
+                return ErrorCode.USER_REG_SUCCESS;
+            }
+        }else{
+            return ErrorCode.ADMIN_ALREADY_EXISTS;
+        }
+        return ErrorCode.ADMIN_ALREADY_FAIL;
     }
 
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
-//        System.err.println(name);
-//        System.err.println(pass);
-//        System.err.println(autoLogin);
         userModel = userDao.selectUser(name);
         if(userModel == null){
             UserLoginModel userLoginModel = new UserLoginModel();
@@ -106,5 +120,15 @@ public class UserUserImpl implements UserService {
 //            }
         }
         return null;
+    }
+
+    public UserModel[] selectAllUser(Integer page) {
+        int size = 10;
+        Integer cu = (page-1)*size;
+        return userDao.selectAllUser(cu,size);
+    }
+
+    public UserModel[] selectUser(String name) {
+        return userDao.selectUserByName(name);
     }
 }

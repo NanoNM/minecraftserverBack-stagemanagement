@@ -5,7 +5,6 @@ import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
 import minecraftserveradmin.core.services.impl.UserAdministeredImpl;
 import minecraftserveradmin.core.services.impl.UserUserImpl;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +22,16 @@ public class UserController {
         return userAdministeredImpl.selectAllAdmin(page);
     }
 
+    @GetMapping("/admin/getalluser")
+    private UserModel[] selectAllUser(@RequestParam("page") Integer page){
+        return userUserImpl.selectAllUser(page);
+    }
+
+    @GetMapping("/admin/suchuserbyname")
+    private UserModel[] selectUserByName(@RequestParam("suchname") String name){
+        return userUserImpl.selectUser(name);
+    }
+
     @PostMapping("/admin/modifypassword")
     private Integer modifyPassword(@RequestParam("newps") String passwd, @RequestParam("username") String username){
         return userAdministeredImpl.modifyPassword(passwd,username);
@@ -34,12 +43,21 @@ public class UserController {
     }
 
     @PostMapping("/admin/register")
+    public Integer adminUserRegister(@RequestParam("name") String adminName,
+                                @RequestParam("regname") String name,
+                                @RequestParam("passwd") String passwd,
+                                @RequestParam("email") String email
+    ) {
+        return userAdministeredImpl.doRegister(adminName, name, passwd, email);
+    }
+
+    @PostMapping("/admin/registeruser")
     public Integer userRegister(@RequestParam("name") String adminName,
                                 @RequestParam("regname") String name,
                                 @RequestParam("passwd") String passwd,
                                 @RequestParam("email") String email
     ) {
-        return userAdministeredImpl.doAdminRegister(adminName, name, passwd, email);
+        return userUserImpl.doRegister(adminName, name, passwd, email);
     }
 
     @PostMapping("/login")
@@ -51,16 +69,6 @@ public class UserController {
     ) {
         return userUserImpl.doLogin(name, passwd, isautologin, response);
     }
-//    @PostMapping("/admin/login")
-//    public UserLoginModel adminLogin(@RequestParam("name") String name,
-//                                     @RequestParam("passwd") String passwd,
-//                                     @RequestParam("isautologin") String isautologin,
-//                                    HttpServletResponse response
-//
-//    ){
-//        return userAdministeredImpl.doLogin(name,passwd,"false",response);
-//    }
-
 
     @PostMapping("/admin/login")
     public UserLoginModel adminLogin(@RequestBody JSONObject jsonObject,
@@ -77,6 +85,9 @@ public class UserController {
     private void userLoginOut(@RequestParam("name") String name) {
         userUserImpl.doLogout(name);
     }
+
+
+
 
 
 }

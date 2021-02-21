@@ -1,13 +1,13 @@
-create databases Main;
-
-use main;
+create database mine;
 
 create table autologin
 (
-    id    int auto_increment
+    id            int auto_increment
         primary key,
-    name  varchar(20)  not null,
-    token varchar(256) not null
+    name          varchar(20)                        not null,
+    token         varchar(256)                       not null,
+    create_time   datetime default CURRENT_TIMESTAMP not null,
+    connect_token varchar(256)                       not null
 );
 
 create table shop_car
@@ -35,6 +35,7 @@ create table user
     authority   varchar(256) default 'default'         null,
     UUID        text                                   not null,
     create_time datetime     default CURRENT_TIMESTAMP not null,
-    modify_time datetime     default CURRENT_TIMESTAMP not null
+    modify_time datetime     default CURRENT_TIMESTAMP not null,
+    create_by   varchar(30)  default 'system'          null
 );
 

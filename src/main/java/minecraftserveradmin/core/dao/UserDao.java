@@ -26,13 +26,22 @@ public interface UserDao {
     UserModel selectUser(String name);
     @Select("select id from user where user_name=#{name} and authority='admin'")
     Integer selectAdminUser(String name);
+    @Select("select id from user where user_name=#{name} and authority!='admin'")
+    Integer selectUserUser(String name);
     @Select("select id from user where authority='admin'")
     Integer[] selectAdminUserWithOutName();
-    @Select("select id,user_name,create_time,modify_time,create_by from user limit #{page},#{size}")
+    @Select("select id,user_name,create_time,modify_time,create_by from user where authority='admin' limit #{page},#{size}")
     UserModel[] selectAllAdmin(Integer page,Integer size);
+    @Select("select id,authority,user_name,create_time,modify_time,create_by from user where authority!='admin' limit #{page},#{size}")
+    UserModel[] selectAllUser(Integer page, int size);
+    @Select("select id,authority,user_name,create_time,modify_time,create_by from user where authority!='admin' and user_name=#{name}")
+    UserModel[] selectUserByName(String name);
 
     @Update("UPDATE user SET passwd=#{passwd},modify_time=CURRENT_TIMESTAMP,UUID=#{uuid} WHERE user_name=#{username}")
     int adminUserChangePassword(String passwd, String username,String uuid);
+
+
+
 //    @Select("select name from autologin where token=#{token}")
 //    String selectAutoByToken(String token);
 //    @Select("select id from autologin where name=#{name}")
