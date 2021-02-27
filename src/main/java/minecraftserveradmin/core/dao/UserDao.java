@@ -24,6 +24,8 @@ public interface UserDao {
 
     @Select("select * from user where user_name=#{name}")
     UserModel selectUser(String name);
+    @Select("select create_time,modify_time from user where create_by='system'")
+    UserModel selectUserCreateBySystem();
     @Select("select id from user where user_name=#{name} and authority='admin'")
     Integer selectAdminUser(String name);
     @Select("select id from user where user_name=#{name} and authority!='admin'")

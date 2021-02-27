@@ -153,7 +153,6 @@ public class WebSocketService {
         for (AOPtoken aoptoken : AOPtokens){
             if (session.getId().equals(aoptoken.getSession().getId())){
                 int a = SocketHandlerServices.proxy.UserDao.deleteTokenByName(aoptoken.getName());
-                System.err.println(a);
             }
 //
         }
