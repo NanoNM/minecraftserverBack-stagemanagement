@@ -12,8 +12,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Random;
 import java.util.UUID;
+
+import static minecraftserveradmin.core.services.impl.UserAdministeredImpl.getUserLoginModel;
 
 @Service
 public class UserUserImpl implements UserService {
@@ -70,17 +71,7 @@ public class UserUserImpl implements UserService {
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
             if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-                Cookie AutoCookie = tokenUtil.getAutoLoginToken();
-                response.addCookie(AutoCookie);
-                Cookie ConnectCookie = tokenUtil.getConnect();
-                response.addCookie(ConnectCookie);
-                UserLoginModel userLoginModel = new UserLoginModel();
-                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
-                userModel.setUUID(null);
-                userModel.setPasswd(null);
-                userLoginModel.setUserModel(userModel);
-                userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
-                return userLoginModel;
+                return getUserLoginModel(response, tokenUtil, userModel, userDao);
             }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);

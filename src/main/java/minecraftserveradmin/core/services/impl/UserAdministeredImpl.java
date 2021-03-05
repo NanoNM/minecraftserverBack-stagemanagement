@@ -8,6 +8,7 @@ import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.TokenUtil;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -92,17 +93,7 @@ public class UserAdministeredImpl implements UserService {
                 return userLoginModel;
             }
             if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-                Cookie AutoCookie = tokenUtil.getAutoLoginToken();
-                response.addCookie(AutoCookie);
-                Cookie ConnectCookie = tokenUtil.getConnect();
-                response.addCookie(ConnectCookie);
-                UserLoginModel userLoginModel = new UserLoginModel();
-                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
-                userModel.setUUID(null);
-                userModel.setPasswd(null);
-                userLoginModel.setUserModel(userModel);
-                userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
-                return userLoginModel;
+                return getUserLoginModel(response, tokenUtil, userModel, userDao);
             }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
@@ -122,7 +113,22 @@ public class UserAdministeredImpl implements UserService {
         }
     }
 
-//    public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
+    @NotNull
+    static UserLoginModel getUserLoginModel(HttpServletResponse response, TokenUtil tokenUtil, UserModel userModel, UserDao userDao) {
+        Cookie AutoCookie = tokenUtil.getAutoLoginToken();
+        response.addCookie(AutoCookie);
+        Cookie ConnectCookie = tokenUtil.getConnect();
+        response.addCookie(ConnectCookie);
+        UserLoginModel userLoginModel = new UserLoginModel();
+        userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+        userModel.setUUID(null);
+        userModel.setPasswd(null);
+        userLoginModel.setUserModel(userModel);
+        userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
+        return userLoginModel;
+    }
+
+    //    public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
 //        System.err.println(name);
 ////        System.err.println(pass);
 ////        System.err.println(autoLogin);

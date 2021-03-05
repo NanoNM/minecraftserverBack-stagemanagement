@@ -58,7 +58,7 @@ public class WebSocketService {
     /**
      * 全部在线会话  PS: 基于场景考虑 这里使用线程安全的Map存储会话对象。
      */
-    private static final Map<String, Session> onlineSessions = new ConcurrentHashMap<>();
+    public static final Map<String, Session> onlineSessions = new ConcurrentHashMap<>();
 
     @PostConstruct
     void serverInit(){
@@ -66,8 +66,8 @@ public class WebSocketService {
         LogUtil.log.info("socket服务启动");
         LogUtil.log.info("权限验证系统启动");
         AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);
-        LogUtil.log.info("控制台信息发送线程启动");
-        AdminSocketImpl.conloseSender(onlineSessions);
+//        LogUtil.log.info("控制台信息发送线程启动");
+//        AdminSocketImpl.conloseSender(onlineSessions);
         LogUtil.log.info("mc服务器状态发送线程启动");
         AdminSocketImpl.mcServerStateSender(onlineSessions);
         LogUtil.log.info("系统信息发送线程启动");
@@ -80,6 +80,12 @@ public class WebSocketService {
     @OnOpen
     public void onOpen(@PathParam("userId") String userId, Session session) {
         try {
+//            if ("233".equals(userId)){
+//                LogUtil.log.warn("测试用户登录: " + userId);
+//                onlineSessions.put(session.getId(), session);
+//                adminSocketImpl.sendStatusToConnect(session);
+//                return;
+//            }
             if (UserAdministeredImpl.onlineadmin.size() > 0) {
                 for (OlineUserModel s : UserAdministeredImpl.onlineadmin) {
                     if (s.getUserID().equals(userId)) {
