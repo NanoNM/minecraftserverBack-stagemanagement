@@ -1,5 +1,6 @@
 package minecraftserveradmin.core.services.impl;
 
+import minecraftserveradmin.core.dao.AuthmeDao;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
@@ -7,6 +8,7 @@ import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -18,12 +20,27 @@ import static minecraftserveradmin.core.services.impl.UserAdministeredImpl.getUs
 
 @Service
 public class UserUserImpl implements UserService {
+
+    @Value("${MCM.Minecraft.BindingForumWithLoginPlugin}")
+    Boolean bindingForumWithLoginPlugin;
+
+    @Value("${MCM.Minecraft.logplugin.name}")
+    String logpluginName;
+
+    @Value("${MCM.Minecraft.logplugin.table}")
+    String logpluginTable;
+
     @Autowired
     TokenUtil tokenUtil;
 
     UserModel userModel;
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    AuthmeDao authmeDao;
+
+
 //        String tmp_psaa =
 //                DigestUtils.md5DigestAsHex(passwd.getBytes()) +
 //                        DigestUtils.md5DigestAsHex(UUID.getBytes()) +
@@ -113,9 +130,15 @@ public class UserUserImpl implements UserService {
         return null;
     }
 
-    public UserModel[] selectAllUser(Integer page) {
+    public Object[] selectAllUser(Integer page) {
         int size = 10;
         Integer cu = (page-1)*size;
+//        if (bindingForumWithLoginPlugin){
+//            return authmeDao.selectAllUserFromAuthme(cu,size,logpluginTable);
+//        }else{
+//
+//
+//        }
         return userDao.selectAllUser(cu,size);
     }
 

@@ -64,8 +64,16 @@ public class test {
 //        }
 //    }
     public static void main(String[] args) {
+        String s = "§7";
+        String str = "";
+        for (int i = 0; i < s.length(); i++) {
+            int ch = s.charAt(i);
+            String s4 = Integer.toHexString(ch);
+            str = str + s4;
+        }
+        System.out.println(str);
 //        String encoding = System.getProperty("file.encoding");
-        System.out.println();
+//        System.out.println();
 
 //        new
 //        System.out.println(TimeUtil.millisToStringShort(10000000l).toString());

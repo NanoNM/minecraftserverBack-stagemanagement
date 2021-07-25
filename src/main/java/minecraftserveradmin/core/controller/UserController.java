@@ -23,7 +23,7 @@ public class UserController {
     }
 
     @GetMapping("/admin/getalluser")
-    private UserModel[] selectAllUser(@RequestParam("page") Integer page){
+    private Object selectAllUser(@RequestParam("page") Integer page){
         return userUserImpl.selectAllUser(page);
     }
 
@@ -44,10 +44,11 @@ public class UserController {
 
     @PostMapping("/admin/register")
     public Integer adminUserRegister(@RequestParam("name") String adminName,
-                                @RequestParam("regname") String name,
-                                @RequestParam("passwd") String passwd,
-                                @RequestParam("email") String email
+                                     @RequestParam("regname") String name,
+                                     @RequestParam("passwd") String passwd,
+                                     @RequestParam("email") String email
     ) {
+//        return "禁止注册";
         return userAdministeredImpl.doRegister(adminName, name, passwd, email);
     }
 
@@ -57,6 +58,7 @@ public class UserController {
                                 @RequestParam("passwd") String passwd,
                                 @RequestParam("email") String email
     ) {
+//        return "禁止注册";
         return userUserImpl.doRegister(adminName, name, passwd, email);
     }
 
