@@ -14,6 +14,7 @@ import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.UUID;
 
 import static minecraftserveradmin.core.services.impl.UserAdministeredImpl.getUserLoginModel;
@@ -75,7 +76,7 @@ public class UserUserImpl implements UserService {
         }
         return ErrorCode.ADMIN_ALREADY_FAIL;
     }
-
+    @Override
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
         userModel = userDao.selectUser(name);
         if(userModel == null){
@@ -87,9 +88,9 @@ public class UserUserImpl implements UserService {
                     DigestUtils.md5DigestAsHex(userModel.getUUID().getBytes()) +
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
-            if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
+            if (passwd.equals(userModel.getPasswd()) && "true".equals(autoLogin)){
                 return getUserLoginModel(response, tokenUtil, userModel, userDao);
-            }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
+            }else if(passwd.equals(userModel.getPasswd()) && "false".equals(autoLogin)){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
                 userModel.setUUID(null);
@@ -115,7 +116,7 @@ public class UserUserImpl implements UserService {
 
     @Override
     public UserLoginModel doAutoLogin(String token) {
-        if(!"null".equals(token)){
+//        if(!"null".equals(token)){
 //            String name = userDao.selectAutoByToken(token);
 //            if (name!=null){
 //                userModel = userDao.selectUser(name);
@@ -126,7 +127,7 @@ public class UserUserImpl implements UserService {
 //                userLoginModel.setUserModel(userModel);
 //                return userLoginModel;
 //            }
-        }
+//        }
         return null;
     }
 

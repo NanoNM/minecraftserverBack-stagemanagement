@@ -16,6 +16,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -67,6 +68,7 @@ public class UserAdministeredImpl implements UserService {
         return false;
     }
 
+    @Override
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
 //        Integer index = userDao.selectOnlineByName(name);
 
@@ -92,9 +94,9 @@ public class UserAdministeredImpl implements UserService {
                 userLoginModel.setCode(ErrorCode.USER_NOT_ADMIN);
                 return userLoginModel;
             }
-            if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
+            if (passwd.equals(userModel.getPasswd()) && "true".equals(autoLogin)){
                 return getUserLoginModel(response, tokenUtil, userModel, userDao);
-            }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
+            }else if(passwd.equals(userModel.getPasswd()) && "false".equals(autoLogin)){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
                 userModel.setUUID(null);
@@ -104,6 +106,7 @@ public class UserAdministeredImpl implements UserService {
 //                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
                 userLoginModel.setUserModel(userModel);
                 onlineadmin.add(new OlineUserModel(name, null));
+                userDao.changeAmdinLastLogin(userModel.getUser_name());
                 return userLoginModel;
             }else{
                 UserLoginModel userLoginModel = new UserLoginModel();
@@ -208,8 +211,8 @@ public class UserAdministeredImpl implements UserService {
         return ErrorCode.DELETE_ADMINUSER_FAIL;
     }
 
-    /**
-     * 项目初始化方法
+    /*
+      项目初始化方法
      */
 //    @PostConstruct
 //    void serverInit(){

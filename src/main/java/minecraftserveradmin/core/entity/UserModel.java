@@ -12,7 +12,16 @@ public class UserModel {
     private String UUID;
     private Timestamp create_time;
     private Timestamp modify_time;
+    private Timestamp last_login_time;
     private String create_by;
+
+    public Timestamp getLast_login_time() {
+        return last_login_time;
+    }
+
+    public void setLast_login_time(Timestamp last_login_time) {
+        this.last_login_time = last_login_time;
+    }
 
     public Integer getID() {
         return ID;

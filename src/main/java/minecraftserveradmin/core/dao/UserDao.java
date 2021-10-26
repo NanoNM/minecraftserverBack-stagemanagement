@@ -32,16 +32,17 @@ public interface UserDao {
     Integer selectUserUser(String name);
     @Select("select id from user where authority='admin'")
     Integer[] selectAdminUserWithOutName();
-    @Select("select id,user_name,create_time,modify_time,create_by from user where authority='admin' limit #{page},#{size}")
+    @Select("select id,user_name,create_time,modify_time,create_by,last_login_time from user where authority='admin' limit #{page},#{size}")
     UserModel[] selectAllAdmin(Integer page,Integer size);
-    @Select("select id,authority,user_name,create_time,modify_time,create_by from user where authority!='admin' limit #{page},#{size}")
+    @Select("select id,authority,user_name,create_time,modify_time,create_by,last_login_time from user where authority!='admin' limit #{page},#{size}")
     UserModel[] selectAllUser(Integer page, int size);
     @Select("select id,authority,user_name,create_time,modify_time,create_by from user where authority!='admin' and user_name=#{name}")
     UserModel[] selectUserByName(String name);
 
     @Update("UPDATE user SET passwd=#{passwd},modify_time=CURRENT_TIMESTAMP,UUID=#{uuid} WHERE user_name=#{username}")
     int adminUserChangePassword(String passwd, String username,String uuid);
-
+    @Update("UPDATE user SET last_login_time=CURRENT_TIMESTAMP WHERE user_name=#{username}")
+    int changeAmdinLastLogin(String username);
 
 
 //    @Select("select name from autologin where token=#{token}")
