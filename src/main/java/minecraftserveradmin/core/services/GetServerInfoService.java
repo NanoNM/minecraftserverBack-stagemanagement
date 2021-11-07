@@ -10,13 +10,14 @@ import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 @Service
 public class GetServerInfoService {
@@ -103,5 +104,50 @@ public class GetServerInfoService {
 //        serverInfoModel.setMcServerStartTime(TimeUtil.MCServerStartTime);
 //        serverInfoModel.setMcServerRunningTime(System.currentTimeMillis()-TimeUtil.MCServerStartTime);
         return serverInfoModel;
+    }
+
+
+    public String synchronizationConsole() {
+        StringBuilder s= new StringBuilder();
+        try {
+            File file = new File("logs/latest.log");
+            FileInputStream f = new FileInputStream(file);
+            InputStreamReader isr = new InputStreamReader(f);
+            BufferedReader br = new BufferedReader(isr);
+            String line = null;
+            while((line = br.readLine())!=null){
+                s.append(line).append("\n");
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            s.append("");
+        }
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        GZIPOutputStream gzip = null;
+        try {
+            gzip = new GZIPOutputStream(out);
+            gzip.write(s.toString().getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (gzip != null) {
+                try {
+                    gzip.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return new sun.misc.BASE64Encoder().encode(out.toByteArray());
+
+
+//        return Base64.getEncoder().encode(s.toString().getBytes());
     }
 }

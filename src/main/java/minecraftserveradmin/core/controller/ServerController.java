@@ -112,12 +112,11 @@ public class ServerController {
         }
     }
 
-//    @ResponseBody
-//    @GetMapping("/admin/setsetting")
-//    public boolean setSetting(@Param("jsonstr") JSONObject jsonParam) throws IOException {
-////        formatServerSettingService.settingFormat(jsonParam);
-//        return true;
-//    }
+    @ResponseBody
+    @GetMapping("/admin/synchronizationConsole")
+    public String synchronizationConsole() throws IOException {
+        return getServerInfoService.synchronizationConsole();
+    }
 }
 
 
