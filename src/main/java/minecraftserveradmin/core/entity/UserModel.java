@@ -14,6 +14,15 @@ public class UserModel {
     private Timestamp modify_time;
     private Timestamp last_login_time;
     private String create_by;
+    private String realname;
+
+    public String getAuthme_id() {
+        return realname;
+    }
+
+    public void setAuthme_id(String realname) {
+        this.realname = realname;
+    }
 
     public Timestamp getLast_login_time() {
         return last_login_time;

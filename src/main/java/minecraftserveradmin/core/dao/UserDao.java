@@ -32,9 +32,11 @@ public interface UserDao {
     Integer selectUserUser(String name);
     @Select("select id from user where authority='admin'")
     Integer[] selectAdminUserWithOutName();
-    @Select("select id,user_name,create_time,modify_time,create_by,last_login_time from user where authority='admin' limit #{page},#{size}")
+//    @Select("select id,user_name,create_time,modify_time,create_by,last_login_time from user where authority='admin' limit #{page},#{size}")
+    @Select("select a.id,a.user_name,a.create_time,a.modify_time,a.create_by,a.last_login_time,b.realname from user a left join authme b on a.authme_id = b.id where authority='admin' limit #{page},#{size};")
     UserModel[] selectAllAdmin(Integer page,Integer size);
-    @Select("select id,authority,user_name,create_time,modify_time,create_by,last_login_time from user where authority!='admin' limit #{page},#{size}")
+//    @Select("select id,authority,user_name,create_time,modify_time,create_by,last_login_time from user where authority!='admin' limit #{page},#{size}")
+    @Select("select a.id,a.authority,a.user_name,a.create_time,a.modify_time,a.create_by,a.last_login_time,b.realname from user a left join authme b on a.authme_id = b.id where authority!='admin' limit #{page},#{size};")
     UserModel[] selectAllUser(Integer page, int size);
     @Select("select id,authority,user_name,create_time,modify_time,create_by from user where authority!='admin' and user_name=#{name}")
     UserModel[] selectUserByName(String name);

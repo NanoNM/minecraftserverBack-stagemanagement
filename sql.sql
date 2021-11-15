@@ -66,3 +66,4 @@ create table user
     create_by       varchar(30)  default 'system'          null
 );
 
+
