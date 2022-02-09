@@ -11,12 +11,14 @@ import minecraftserveradmin.core.services.RunServerService;
 import minecraftserveradmin.core.services.SocketRelatedService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.LogUtil;
+import minecraftserveradmin.core.util.StaticDataUtil;
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.websocket.Session;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -71,6 +73,9 @@ public class AdminSocketImpl implements SocketRelatedService {
             return jsonStr;
         }
         if ("cmd".equals(jb.getString("name"))){
+            String cmd = jb.getString("startservercmd");
+            if (cmd!=null)
+                StaticDataUtil.cmd+=cmd;
             runServerService.doCom(jb.getString("value"));
         }
         if ("message".equals(jb.getString("name"))) {
@@ -175,56 +180,107 @@ public class AdminSocketImpl implements SocketRelatedService {
         });
         authenticationThreadReader.start();
     }
+//    暂时废弃
+//    public static void conloseSender(Map<String, Session> onlineSessions){
+//        Thread conloseSender = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while(true){
+//                    if(!onlineSessions.isEmpty()){
+//                        StringBuffer ss= new StringBuffer();
+//                        while(runServerService.getServerIsOpen() == 1)
+//                        {
+//                            StringBuffer s= new StringBuffer();
+//                            try {
+//                                File file = new File("logs/latest.log");
+//                                FileInputStream f = new FileInputStream(file);
+//                                InputStreamReader isr = new InputStreamReader(f);
+//                                BufferedReader br = new BufferedReader(isr);
+//                                String line = null;
+//                                while((line = br.readLine())!=null){
+//                                    s.append(line+"\n");
+//                                }
+//                                br.close();
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                                s.append("");
+//                            }
+//                            try {
+//                                Thread.sleep(500);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//                            JSONObject jsonObject = new JSONObject();
+//
+//                            StringBuffer s2 = new StringBuffer();
+//                            s2.setLength(0);
+//                            s2.append(s);
+//                            s2.delete(0,ss.length());
+//
+//                            jsonObject.put("console", s2.toString());
+//                            if (!ss.toString().equals(s.toString())) {
+//                                ss.setLength(0);
+//                                ss.append(s);
+//                                try {
+//                                    Thread.sleep(3000);
+//                                } catch (InterruptedException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                String utf8Str = new String(jsonObject.toJSONString().getBytes(), StandardCharsets.UTF_8);
+//                                sendMessageToAll(utf8Str, onlineSessions);
+//
+////                                System.out.println(utf8Str);
+//                            }
+//                        }
+////                        {
+////                            StringBuffer s= new StringBuffer();
+////                            try {
+////                                File file = new File("logs/latest.log");
+////                                FileInputStream f = new FileInputStream(file);
+////                                InputStreamReader isr = new InputStreamReader(f);
+////                                BufferedReader br = new BufferedReader(isr);
+////                                String line = null;
+////                                while((line = br.readLine())!=null){
+////                                    s.append(line+"\n");
+////                                }
+////                                br.close();
+////                            } catch (IOException e) {
+////                                e.printStackTrace();
+////                                s.append("");
+////                            }
+////                            try {
+////                                Thread.sleep(500);
+////                            } catch (InterruptedException e) {
+////                                e.printStackTrace();
+////                            }
+////                            JSONObject jsonObject = new JSONObject();
+////
+////
+////                            jsonObject.put("console", s.toString());
+////                            if (!ss.toString().equals(s.toString())) {
+////                                ss.setLength(0);
+////                                ss.append(s);
+////                                try {
+////                                    Thread.sleep(500);
+////                                } catch (InterruptedException e) {
+////                                    e.printStackTrace();
+////                                }
+////                                sendMessageToAll(jsonObject.toJSONString(), onlineSessions);
+////                            }
+////                        }
+//                    }
+//                    try {
+//                        Thread.sleep(250);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        });
+//        conloseSender.start();
+//    }
 
-    public static void conloseSender(Map<String, Session> onlineSessions){
-        Thread conloseSender = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true){
-                    if(!onlineSessions.isEmpty()){
-                        StringBuffer ss= new StringBuffer();
-                        while(runServerService.getServerIsOpen() == 1){
-                            StringBuffer s= new StringBuffer();
-                            try {
-                                File file = new File("logs/latest.log");
-                                FileInputStream f = new FileInputStream(file);
-                                InputStreamReader isr = new InputStreamReader(f);
-                                BufferedReader br = new BufferedReader(isr);
-                                String line = null;
-                                while((line = br.readLine())!=null){
-                                    s.append(line+"\n");
-                                }
-                                br.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                s.append("");
-                            }
-                            try {
-                                Thread.sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("console", s.toString());
-                            if (!ss.toString().equals(s.toString())) {
-                                ss.setLength(0);
-                                ss.append(s);
-                                sendMessageToAll(jsonObject.toJSONString(), onlineSessions);
-                            }
-                        }
-                    }
-                    try {
-                        Thread.sleep(250);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        });
-        conloseSender.start();
-    }
-
-    private static void sendMessageToAll(String msg, Map<String, Session> onlineSessions) {
+    public static void sendMessageToAll(String msg, Map<String, Session> onlineSessions) {
         onlineSessions.forEach((id, session) -> {
             try {
                 synchronized(session){

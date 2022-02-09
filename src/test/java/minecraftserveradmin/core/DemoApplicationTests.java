@@ -1,7 +1,9 @@
 package minecraftserveradmin.core;
 
+import minecraftserveradmin.core.services.impl.UserUserImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.logging.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -210,9 +212,11 @@ class DemoApplicationTests {
 //    }
 
 
+    @Autowired
+    UserUserImpl userUser;
     @Test
     void contextLoads() {
-
+        userUser.selectAllUser(1);
 
 //        String f = "===============================================";
 //        SystemInfo si = new SystemInfo();

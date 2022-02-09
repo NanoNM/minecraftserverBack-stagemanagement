@@ -21,7 +21,7 @@ public class ModSettingContorller {
     //mod启用禁用
     @ResponseBody
     @GetMapping("/admin/modScanning")
-    public List enumMod(@Param("cmd") String cmd,@Param("filename") String filename){
+    public List enumMod(@RequestParam("name") String adminName, @RequestParam(value = "cmd", required = false) String cmd,@RequestParam(value = "filename", required = false) String filename){
         if (cmd == null){
             return getModList.doScan();
         }else if("able".equals(cmd)){
@@ -30,6 +30,8 @@ public class ModSettingContorller {
             getModList.disable(filename);
         }else if("remove".equals(cmd)){
             getModList.remove(filename);
+        }else if("completelyDelete".equals(cmd)){
+            getModList.CPRemove(adminName, filename);
         }
         return null;
     }
@@ -37,14 +39,14 @@ public class ModSettingContorller {
     //mod删除
     @ResponseBody
     @GetMapping("/admin/reMove")
-    public String removeMod(@Param("cmd") String cmd,@Param("filename") String filename){
+    public String removeMod(@RequestParam("cmd") String cmd,@RequestParam("filename") String filename){
         return "功能未实现！！";
     }
 
     //mod信息
     @ResponseBody
     @GetMapping("/admin/moremodinfo")
-    public String removeMod(@Param("filename") String filename){
+    public String removeMod(@RequestParam("filename") String filename){
         return getModList.moreModInfo(filename);
     }
 

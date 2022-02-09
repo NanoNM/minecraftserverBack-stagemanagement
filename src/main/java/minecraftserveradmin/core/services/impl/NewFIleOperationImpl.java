@@ -52,7 +52,6 @@ public class NewFIleOperationImpl implements NewFileOperationService {
 //            BufferedInputStream bis = null;
             try (FileInputStream fis = new FileInputStream(file);
                  BufferedInputStream bis = new BufferedInputStream(fis)){
-
                 OutputStream os = httpResponse.getOutputStream();
                 int i = bis.read(buffer);
                 while (i != -1) {

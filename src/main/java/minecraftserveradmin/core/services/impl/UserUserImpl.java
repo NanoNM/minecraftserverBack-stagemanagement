@@ -1,5 +1,6 @@
 package minecraftserveradmin.core.services.impl;
 
+import minecraftserveradmin.core.dao.AuthmeDao;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
@@ -7,23 +8,40 @@ import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Random;
+import java.util.Date;
+import java.util.UUID;
+
+import static minecraftserveradmin.core.services.impl.UserAdministeredImpl.getUserLoginModel;
 
 @Service
 public class UserUserImpl implements UserService {
+
+    @Value("${MCM.Minecraft.BindingForumWithLoginPlugin}")
+    Boolean bindingForumWithLoginPlugin;
+
+    @Value("${MCM.Minecraft.logplugin.name}")
+    String logpluginName;
+
+    @Value("${MCM.Minecraft.logplugin.table}")
+    String logpluginTable;
+
     @Autowired
     TokenUtil tokenUtil;
 
     UserModel userModel;
     @Autowired
     UserDao userDao;
-//    @Override
-//    public int doRegister(String name, String passwd, String email, String UUID){
+
+    @Autowired
+    AuthmeDao authmeDao;
+
+
 //        String tmp_psaa =
 //                DigestUtils.md5DigestAsHex(passwd.getBytes()) +
 //                        DigestUtils.md5DigestAsHex(UUID.getBytes()) +
@@ -34,17 +52,32 @@ public class UserUserImpl implements UserService {
 //                return ErrorCode.REGISTER_SUCCESS;
 //        }
 //        return (ErrorCode.SAME_USER_NAME);
-//    };
+//    }
 
     @Override
-    public Integer doAdminRegister(String adminName, String name, String passwd, String email) {
-        return 0;
+    public Integer doRegister(String regName, String name, String passwd, String email) {
+        Integer flag = userDao.selectAdminUser(regName);
+        if(flag==null){
+            return ErrorCode.ADMIN_ALREADY_FAIL;
+        }
+        String uuid = UUID.randomUUID().toString();
+        uuid = uuid.replace("-", "");
+        String tmp_pass =
+                        DigestUtils.md5DigestAsHex(passwd.getBytes()) +
+                        DigestUtils.md5DigestAsHex(uuid.getBytes()) +
+                        DigestUtils.md5DigestAsHex(passwd.getBytes());
+        String pass = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
+        if(userDao.selectUser(name) == null){
+            if (userDao.insertAdminUser(name,email,pass,"user",1,uuid,regName) == 1){
+                return ErrorCode.USER_REG_SUCCESS;
+            }
+        }else{
+            return ErrorCode.ADMIN_ALREADY_EXISTS;
+        }
+        return ErrorCode.ADMIN_ALREADY_FAIL;
     }
-
+    @Override
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
-//        System.err.println(name);
-//        System.err.println(pass);
-//        System.err.println(autoLogin);
         userModel = userDao.selectUser(name);
         if(userModel == null){
             UserLoginModel userLoginModel = new UserLoginModel();
@@ -55,19 +88,9 @@ public class UserUserImpl implements UserService {
                     DigestUtils.md5DigestAsHex(userModel.getUUID().getBytes()) +
                     DigestUtils.md5DigestAsHex(pass.getBytes());
             String passwd = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
-            if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-                Cookie AutoCookie = tokenUtil.getAutoLoginToken();
-                response.addCookie(AutoCookie);
-                Cookie ConnectCookie = tokenUtil.getConnect();
-                response.addCookie(ConnectCookie);
-                UserLoginModel userLoginModel = new UserLoginModel();
-                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
-                userModel.setUUID(null);
-                userModel.setPasswd(null);
-                userLoginModel.setUserModel(userModel);
-                userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
-                return userLoginModel;
-            }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
+            if (passwd.equals(userModel.getPasswd()) && "true".equals(autoLogin)){
+                return getUserLoginModel(response, tokenUtil, userModel, userDao);
+            }else if(passwd.equals(userModel.getPasswd()) && "false".equals(autoLogin)){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
                 userModel.setUUID(null);
@@ -93,7 +116,7 @@ public class UserUserImpl implements UserService {
 
     @Override
     public UserLoginModel doAutoLogin(String token) {
-        if(!"null".equals(token)){
+//        if(!"null".equals(token)){
 //            String name = userDao.selectAutoByToken(token);
 //            if (name!=null){
 //                userModel = userDao.selectUser(name);
@@ -104,7 +127,23 @@ public class UserUserImpl implements UserService {
 //                userLoginModel.setUserModel(userModel);
 //                return userLoginModel;
 //            }
-        }
+//        }
         return null;
+    }
+
+    public Object[] selectAllUser(Integer page) {
+        int size = 10;
+        Integer cu = (page-1)*size;
+//        if (bindingForumWithLoginPlugin){
+//            return authmeDao.selectAllUserFromAuthme(cu,size,logpluginTable);
+//        }else{
+//
+//
+//        }
+        return userDao.selectAllUser(cu,size);
+    }
+
+    public UserModel[] selectUser(String name) {
+        return userDao.selectUserByName(name);
     }
 }

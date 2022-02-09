@@ -8,6 +8,7 @@ import minecraftserveradmin.core.services.UserService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.TokenUtil;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -15,6 +16,7 @@ import org.springframework.util.DigestUtils;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -35,7 +37,7 @@ public class UserAdministeredImpl implements UserService {
     @Autowired
     UserDao userDao;
     @Override
-    public Integer doAdminRegister(String adminName, String name, String passwd, String email){
+    public Integer doRegister(String adminName, String name, String passwd, String email){
         Integer flag = userDao.selectAdminUser(adminName);
         if(flag==null){
             return (0);
@@ -66,6 +68,7 @@ public class UserAdministeredImpl implements UserService {
         return false;
     }
 
+    @Override
     public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
 //        Integer index = userDao.selectOnlineByName(name);
 
@@ -91,19 +94,9 @@ public class UserAdministeredImpl implements UserService {
                 userLoginModel.setCode(ErrorCode.USER_NOT_ADMIN);
                 return userLoginModel;
             }
-            if (passwd.equals(userModel.getPasswd()) && autoLogin.equals("true")){
-                Cookie AutoCookie = tokenUtil.getAutoLoginToken();
-                response.addCookie(AutoCookie);
-                Cookie ConnectCookie = tokenUtil.getConnect();
-                response.addCookie(ConnectCookie);
-                UserLoginModel userLoginModel = new UserLoginModel();
-                userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
-                userModel.setUUID(null);
-                userModel.setPasswd(null);
-                userLoginModel.setUserModel(userModel);
-                userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
-                return userLoginModel;
-            }else if(passwd.equals(userModel.getPasswd()) && autoLogin.equals("false")){
+            if (passwd.equals(userModel.getPasswd()) && "true".equals(autoLogin)){
+                return getUserLoginModel(response, tokenUtil, userModel, userDao);
+            }else if(passwd.equals(userModel.getPasswd()) && "false".equals(autoLogin)){
                 UserLoginModel userLoginModel = new UserLoginModel();
                 userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
                 userModel.setUUID(null);
@@ -113,6 +106,7 @@ public class UserAdministeredImpl implements UserService {
 //                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
                 userLoginModel.setUserModel(userModel);
                 onlineadmin.add(new OlineUserModel(name, null));
+                userDao.changeAmdinLastLogin(userModel.getUser_name());
                 return userLoginModel;
             }else{
                 UserLoginModel userLoginModel = new UserLoginModel();
@@ -122,7 +116,22 @@ public class UserAdministeredImpl implements UserService {
         }
     }
 
-//    public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
+    @NotNull
+    static UserLoginModel getUserLoginModel(HttpServletResponse response, TokenUtil tokenUtil, UserModel userModel, UserDao userDao) {
+        Cookie AutoCookie = tokenUtil.getAutoLoginToken();
+        response.addCookie(AutoCookie);
+        Cookie ConnectCookie = tokenUtil.getConnect();
+        response.addCookie(ConnectCookie);
+        UserLoginModel userLoginModel = new UserLoginModel();
+        userLoginModel.setCode(ErrorCode.LOGIN_SUCCESS);
+        userModel.setUUID(null);
+        userModel.setPasswd(null);
+        userLoginModel.setUserModel(userModel);
+        userDao.insertAutoLogin(userModel.getUser_name(),AutoCookie.getValue(),ConnectCookie.getValue());
+        return userLoginModel;
+    }
+
+    //    public UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response){
 //        System.err.println(name);
 ////        System.err.println(pass);
 ////        System.err.println(autoLogin);
@@ -196,14 +205,14 @@ public class UserAdministeredImpl implements UserService {
     public Integer deleteAdmin(String name, String username) {
         Integer flag = userDao.deleteAdminUser(username);
         if (flag>0){
-            LogUtil.log.info(name + "执行了删除管理员操作! 删除了" + flag + "条数据");
+            LogUtil.log.info(name + "执行了删除成员操作! 删除了" + flag + "条数据");
             return ErrorCode.DELETE_ADMINUSER_SUCCESS;
         }
         return ErrorCode.DELETE_ADMINUSER_FAIL;
     }
 
-    /**
-     * 项目初始化方法
+    /*
+      项目初始化方法
      */
 //    @PostConstruct
 //    void serverInit(){
