@@ -75,8 +75,7 @@ public class NewFIleOperationImpl implements NewFileOperationService {
         for(File f:fs){//遍历File[]数组
 //            String rootPath = System.getProperty("user.dir");
             String s = f.getPath().replace(projectPath+File.separator,"");
-            if(!f.isDirectory())		//若非目录(即文件)，则打印
-            {
+            if(!f.isDirectory()){
                 String fileTyle = "";
                 try {
                     try{
@@ -103,6 +102,7 @@ public class NewFIleOperationImpl implements NewFileOperationService {
         File[] fs = file.listFiles();	//遍历path下的文件和目录，放在File数组中
         for(File f:fs) {
             String s = f.getPath().replace(projectPath,"");//遍历File[]数组
+           
             if (!f.isDirectory())        //若非目录(即文件)，则打印
             {
                 String fileTyle = "";
