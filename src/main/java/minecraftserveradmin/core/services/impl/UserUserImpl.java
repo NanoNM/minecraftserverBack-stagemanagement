@@ -1,6 +1,6 @@
 package minecraftserveradmin.core.services.impl;
 
-import minecraftserveradmin.core.dao.AuthmeDao;
+//import minecraftserveradmin.core.dao.AuthmeDao;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
@@ -38,8 +38,8 @@ public class UserUserImpl implements UserService {
     @Autowired
     UserDao userDao;
 
-    @Autowired
-    AuthmeDao authmeDao;
+//    @Autowired
+//    AuthmeDao authmeDao;
 
 
 //        String tmp_psaa =
