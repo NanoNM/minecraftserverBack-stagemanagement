@@ -36,6 +36,7 @@ public class MainPageController {
     @GetMapping("/errorcode")
     private String getErrcode(){
         return ErrorCodeService.getErrorCodeBuffer();
+//        JOptionPane.showConfirmDialog(null, "你的电脑已经被我入侵了！！！");
     }
 
 }

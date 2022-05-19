@@ -44,7 +44,7 @@ public interface UserDao {
     @Update("UPDATE user SET passwd=#{passwd},modify_time=CURRENT_TIMESTAMP,UUID=#{uuid} WHERE user_name=#{username}")
     int adminUserChangePassword(String passwd, String username,String uuid);
     @Update("UPDATE user SET last_login_time=CURRENT_TIMESTAMP WHERE user_name=#{username}")
-    int changeAmdinLastLogin(String username);
+    int changeAdminLastLogin(String username);
 
 
 //    @Select("select name from autologin where token=#{token}")

@@ -4,19 +4,19 @@ import minecraftserveradmin.core.MainecraftApplication;
 import minecraftserveradmin.core.entity.ServerInfoModel;
 import minecraftserveradmin.core.util.TimeUtil;
 import oshi.SystemInfo;
+import oshi.driver.windows.perfmon.ProcessorInformation;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GlobalMemory;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OperatingSystem;
 import org.springframework.stereotype.Service;
+import oshi.util.GlobalConfig;
 
 import java.io.*;
 import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPOutputStream;
 
 @Service
@@ -58,29 +58,52 @@ public class GetServerInfoService {
     private static String getSystemInfo(){
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hal = si.getHardware();
+        //使用任务管理器调度 https://github.com/oshi/oshi/pull/1886/files FAQ.MD
+        GlobalConfig.set("oshi.os.windows.cpu.utility", true);
         OperatingSystem os = si.getOperatingSystem();
-        return os.getFamily()+" "+os.getVersion();
+        return os.getFamily()+" "+os.getVersionInfo();
     }
+
     private String printProcessor(CentralProcessor processor) {
-        return processor.getName();
+        return processor.toString();
     }
-    private Integer printProcessorUser(CentralProcessor processor) {
-        double i = (processor.getSystemCpuLoad() * 100);
-        return (int) i;
+    private double printProcessorUse(CentralProcessor processor) throws InterruptedException {
+        long[] prevTicks = processor.getSystemCpuLoadTicks();
+        // 睡眠1s
+        TimeUnit.SECONDS.sleep(1);
+        long[] ticks = processor.getSystemCpuLoadTicks();
+        long nice = ticks[CentralProcessor.TickType.NICE.getIndex()] - prevTicks[CentralProcessor.TickType.NICE.getIndex()];
+        long irq = ticks[CentralProcessor.TickType.IRQ.getIndex()] - prevTicks[CentralProcessor.TickType.IRQ.getIndex()];
+        long softirq = ticks[CentralProcessor.TickType.SOFTIRQ.getIndex()] - prevTicks[CentralProcessor.TickType.SOFTIRQ.getIndex()];
+        long steal = ticks[CentralProcessor.TickType.STEAL.getIndex()] - prevTicks[CentralProcessor.TickType.STEAL.getIndex()];
+        long cSys = ticks[CentralProcessor.TickType.SYSTEM.getIndex()] - prevTicks[CentralProcessor.TickType.SYSTEM.getIndex()];
+        long user = ticks[CentralProcessor.TickType.USER.getIndex()] - prevTicks[CentralProcessor.TickType.USER.getIndex()];
+        long iowait = ticks[CentralProcessor.TickType.IOWAIT.getIndex()] - prevTicks[CentralProcessor.TickType.IOWAIT.getIndex()];
+        long idle = ticks[CentralProcessor.TickType.IDLE.getIndex()] - prevTicks[CentralProcessor.TickType.IDLE.getIndex()];
+        long totalCpu = user + nice + cSys + idle + iowait + irq + softirq + steal;
+
+//        processor.getSystemCpuLoadTicks();
+////        double i = (Arrays.stream(processor.getCurrentFreq()).average().getAsDouble());
+//        System.out.println(i);
+//        System.out.println((idle * 1.0 / totalCpu)*100);
+//        System.out.println((int);
+        return ((1-(idle * 1.0 / totalCpu))*100);
     }
-    private Integer printMemoryUser(GlobalMemory memory) {
+    private Integer printMemoryUse(GlobalMemory memory) {
         double i = (((double)memory.getTotal()-(double)memory.getAvailable())/(double)memory.getTotal()) *100;
         return (int)i;
     }
 
-    public ServerInfoModel setModel(){
+    public ServerInfoModel setModel() throws InterruptedException {
+
         SystemInfo si = new SystemInfo();
+
         HardwareAbstractionLayer hal = si.getHardware();
         OperatingSystem os = si.getOperatingSystem();
         serverInfoModel.setSystemInfo(systemInfo);
         serverInfoModel.setCpuInfo(printProcessor(hal.getProcessor()));
-        serverInfoModel.setCpuUserInfo(printProcessorUser(hal.getProcessor()));
-        serverInfoModel.setMemoryUserInfo(printMemoryUser(hal.getMemory()));
+        serverInfoModel.setCpuUserInfo(printProcessorUse(hal.getProcessor()));
+        serverInfoModel.setMemoryUserInfo(printMemoryUse(hal.getMemory()));
         SimpleDateFormat SpringBootStartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String SpringBootStartTimeString = SpringBootStartTime.format(new Date(TimeUtil.SpringBootStartTime)); // 时间戳转换日期
         serverInfoModel.setSpringBootStartTime(SpringBootStartTimeString);
@@ -103,6 +126,7 @@ public class GetServerInfoService {
 
 //        serverInfoModel.setMcServerStartTime(TimeUtil.MCServerStartTime);
 //        serverInfoModel.setMcServerRunningTime(System.currentTimeMillis()-TimeUtil.MCServerStartTime);
+
         return serverInfoModel;
     }
 

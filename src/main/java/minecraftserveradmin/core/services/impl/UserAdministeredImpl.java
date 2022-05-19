@@ -106,7 +106,7 @@ public class UserAdministeredImpl implements UserService {
 //                userDao.insertConnect(userModel.getUser_name(),ConnectCookie.getValue());
                 userLoginModel.setUserModel(userModel);
                 onlineadmin.add(new OlineUserModel(name, null));
-                userDao.changeAmdinLastLogin(userModel.getUser_name());
+                userDao.changeAdminLastLogin(userModel.getUser_name());
                 return userLoginModel;
             }else{
                 UserLoginModel userLoginModel = new UserLoginModel();

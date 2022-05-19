@@ -5,20 +5,31 @@ import minecraftserveradmin.core.entity.NewFileModel;
 import minecraftserveradmin.core.services.ErrorCodeService;
 import minecraftserveradmin.core.services.impl.FIleOperationImpl;
 import minecraftserveradmin.core.services.impl.NewFIleOperationImpl;
+import minecraftserveradmin.core.util.CharsetUtil;
+import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.TimeUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import oshi.SystemInfo;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.software.os.OperatingSystem;
 
+import javax.swing.*;
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Stack;
 
 
 @SpringBootTest
 public class test {
+
+
 
 //    public static void main(String[] args) throws IOException {
 ////        HashSet h = new HashSet(list);
@@ -63,15 +74,46 @@ public class test {
 //            }
 //        }
 //    }
+
+
     public static void main(String[] args) {
-        String s = "§7";
-        String str = "";
-        for (int i = 0; i < s.length(); i++) {
-            int ch = s.charAt(i);
-            String s4 = Integer.toHexString(ch);
-            str = str + s4;
+        int x = -1233;
+        int len = String.valueOf(x).length();
+        int nums[] = new int[len];
+        for(int i=0; i<len; i++){
+            nums[i] = x % 10;
+            x /= 10;
         }
-        System.out.println(str);
+        Stack<Integer> sta = new Stack<>();
+        for (int s : nums) { sta.push(s);}
+        int fanlNums[] = new int[len];
+        for(int i=0; i<len; i++){
+            fanlNums[len-i-1] = sta.pop();
+        }
+        long sum = 0;
+        for(int i=0; i<len-1; i++){
+            sum = sum * 10 + fanlNums[i];
+        }
+        if (sum>Integer.MIN_VALUE){
+            return;
+        }
+        System.out.println(sum);
+
+//        SystemInfo si = new SystemInfo();
+//        HardwareAbstractionLayer hal = si.getHardware();
+//        OperatingSystem os = si.getOperatingSystem();
+//        LogUtil.log.info("${jndi:rmi://127.0.0.1:1099/obj}");
+//        String s = "helloworld";
+//        File file = new File(s);
+//        System.out.println(CharsetUtil.guessCharacterSet(file));
+//        String s = "§7";
+//        String str = "";
+//        for (int i = 0; i < s.length(); i++) {
+//            int ch = s.charAt(i);
+//            String s4 = Integer.toHexString(ch);
+//            str = str + s4;
+//        }
+//        System.out.println(str);
 //        String encoding = System.getProperty("file.encoding");
 //        System.out.println();
 

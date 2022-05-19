@@ -2,21 +2,18 @@ package minecraftserveradmin.core.services;
 
 import com.alibaba.fastjson.JSONObject;
 import com.sun.jna.Platform;
+import minecraftserveradmin.core.dto.SocketResult;
 import minecraftserveradmin.core.controller.WebSocketService;
 import minecraftserveradmin.core.services.impl.AdminSocketImpl;
 import minecraftserveradmin.core.util.Kernel32;
 import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.StaticDataUtil;
-import org.apache.ibatis.annotations.Param;
 import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import static minecraftserveradmin.core.util.TimeUtil.MCServerStartTime;
 
@@ -45,6 +42,7 @@ public class RunServerService {
                 LogUtil.log.info("jar包通过指令==>" + StaticDataUtil.cmd +"执行了");
                 process = Runtime.getRuntime().exec(StaticDataUtil.cmd);
 
+                //获取jar包进程的pid
                 Field field = null;
                 if (Platform.isWindows()) {
                     try {
@@ -66,73 +64,67 @@ public class RunServerService {
                 } else {
                 }
             }
-            Thread threadReader = new Thread(new Runnable() {
-                @Override
-                public void run(){
-                    MCServerStartTime = System.currentTimeMillis();
-                    LogUtil.log.info("我的世界服务器启动");
-                    InputStream inputStream = process.getInputStream();
-                    String line = null;
-                    try {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, System.getProperties().get("sun.jnu.encoding").toString()));
-                        while((line = br.readLine())!= null){
+            Thread threadReader = new Thread(() -> {
+                MCServerStartTime = System.currentTimeMillis();
+                LogUtil.log.info("我的世界服务器启动");
+                InputStream inputStream = process.getInputStream();
+                String line = null;
+                try {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, System.getProperties().get("sun.jnu.encoding").toString()));
+                    while((line = br.readLine())!= null){
 //                            LogUtil.log.info();
-                           JSONObject jsonObject = new JSONObject();
-                            jsonObject.put("console", new String(line.getBytes(), StandardCharsets.UTF_8) + "\n");
-                            AdminSocketImpl.sendMessageToAll(jsonObject.toJSONString(),WebSocketService.onlineSessions);
+//                        JSONObject jsonObject = new JSONObject();
+//                        jsonObject.put("console", new String(line.getBytes(), System.getProperty("file.encoding")) + "\n");
+                        SocketResult socketResult = new SocketResult("console","",new String(line.getBytes(), System.getProperty("file.encoding")) + "\n");
+                        JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                        AdminSocketImpl.sendMessageToAll(socketResultJson.toJSONString(),WebSocketService.onlineSessions);
+                    }
+                    serverIsOpen = 0;
+                    inputStream.close();
+                    process.destroy();
+                    LogUtil.log.info("我的世界服务器关闭");
+                    MCServerStartTime = -1;
+                }catch (Exception e){ LogUtil.log.error(e.getMessage()); }
+            });
+
+            Thread threadError = new Thread(() -> {
+                LogUtil.log.info("服务器异常捕获启动");
+                try{
+                    BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    String readLine = br.readLine();
+                    String befline = "";
+                    String line = null;
+                    while ((line = readLine)!= null) {
+                        if(serverIsOpen == 0){
+                            LogUtil.log.info("服务器异常捕获关闭");
+                            break;
                         }
-                        serverIsOpen = 0;
-                        inputStream.close();
-                        process.destroy();
-                        LogUtil.log.info("我的世界服务器关闭");
-                        MCServerStartTime = -1;
-                    }catch (Exception e){ LogUtil.log.error(e.getMessage()); }
+                        if (!befline.equals(line)){
+                            LogUtil.log.error(
+                                    "==================异常=================\n"
+                                    + line +
+                                    "\n================结束=================");
+
+                            befline = line;
+                        }
+                        Thread.sleep(250);
+                    }
+                }catch (Exception e){
+                    LogUtil.log.error(e.getMessage());
                 }
             });
 
-            Thread threadError = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtil.log.info("服务器异常捕获启动");
-                    try{
-                        BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                        String readLine = br.readLine();
-                        String befline = "";
-                        String line = null;
-                        while ((line = readLine)!= null) {
-                            if(serverIsOpen == 0){
-                                LogUtil.log.info("服务器异常捕获关闭");
-                                break;
-                            }
-                            if (!befline.equals(line)){
-                                LogUtil.log.error("==================异常=================");
-                                LogUtil.log.error(line);
-                                LogUtil.log.error("================异常结束================");
-
-                                befline = line;
-                            }
-                            Thread.sleep(250);
-                        }
-                    }catch (Exception e){
-                        LogUtil.log.error(e.getMessage());
-                    }
-                }
-            });
-
-            Thread threadSender = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtil.log.info("我的世界服务器指令响应");
-                    try {
-                        OutputStream outputStream = process.getOutputStream();
-                        OutputStreamWriter ow = new OutputStreamWriter(outputStream);
-                        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                        ow.write(cmd+"\n");
-                        ow.flush();
-                        LogUtil.log.info("我的世界服务器指令响应结束");
-                    }catch (Exception e){
-                        LogUtil.log.info(e.getMessage());
-                    }
+            Thread threadSender = new Thread(() -> {
+                LogUtil.log.info("我的世界服务器指令响应");
+                try {
+                    OutputStream outputStream = process.getOutputStream();
+                    OutputStreamWriter ow = new OutputStreamWriter(outputStream);
+                    DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                    ow.write(cmd+"\n");
+                    ow.flush();
+                    LogUtil.log.info("我的世界服务器指令响应结束");
+                }catch (Exception e){
+                    LogUtil.log.info(e.getMessage());
                 }
             });
 

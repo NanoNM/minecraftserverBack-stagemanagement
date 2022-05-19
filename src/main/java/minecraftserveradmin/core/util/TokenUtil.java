@@ -1,5 +1,7 @@
 package minecraftserveradmin.core.util;
 
+import com.alibaba.fastjson.JSONObject;
+import minecraftserveradmin.core.dto.SocketResult;
 import minecraftserveradmin.core.entity.AOPtoken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
@@ -43,7 +45,11 @@ public class TokenUtil {
         AOPtokens.add(aoPtoken);
         try {
             synchronized (session){
-                session.getBasicRemote().sendText("{\"Authentication\":\"" + testString + "\"}");
+                SocketResult socketResult = new SocketResult("Authentication","",testString);
+                JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                session.getBasicRemote().sendText(socketResultJson.toJSONString());
+//                onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+//                session.getBasicRemote().sendText("{\"Authentication\":\"" + testString + "\"}");
             }
         } catch (IOException e) {
             e.printStackTrace();

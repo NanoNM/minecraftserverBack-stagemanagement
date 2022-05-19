@@ -38,8 +38,11 @@ public class WebSocketService {
 
 //    @Autowired
 //    AdminSocketImpl adminSocket;
+    @Value("${server.mcServerStatusSenderTimer}")
+    String mcServerStatusSenderTimer;
+
     @Value("${server.serverInfoSenderTimer}")
-    String serverInfoSender;
+    String serverInfoSenderTimer;
 
     @Autowired
     public void setAdminSocketImpl(AdminSocketImpl adminSocketImpl) {
@@ -62,7 +65,8 @@ public class WebSocketService {
 
     @PostConstruct
     void serverInit(){
-        AdminSocketImpl.serverInfoSender = serverInfoSender;
+        AdminSocketImpl.mcServerStatusSenderTimer = mcServerStatusSenderTimer;
+        AdminSocketImpl.serverInfoSenderTimer = serverInfoSenderTimer;
         LogUtil.log.info("socket服务启动");
         LogUtil.log.info("权限验证系统启动");
         AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);

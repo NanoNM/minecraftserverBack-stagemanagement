@@ -1,7 +1,7 @@
 package minecraftserveradmin.core.services.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import minecraftserveradmin.core.dto.SocketResult;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.AOPtoken;
 import minecraftserveradmin.core.entity.OlineUserModel;
@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 
 import javax.websocket.Session;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 @Service
 public class AdminSocketImpl implements SocketRelatedService {
+
     private static String testString;
     private static final RunServerService runServerService = new RunServerService();
     private static final GetServerInfoService getServerInfoService = new GetServerInfoService();
@@ -32,12 +32,15 @@ public class AdminSocketImpl implements SocketRelatedService {
     @Autowired
     UserDao userDao;
 
-    static public String serverInfoSender;
+    public static String mcServerStatusSenderTimer;
+    public static String serverInfoSenderTimer;
 
     public void sendStatusToConnect(Session session) throws IOException, InterruptedException {
         Thread.sleep(2000);
-        String message = "{\"ServerStat\":\"" + runServerService.getServerIsOpen().toString() + "\"}";
-        session.getBasicRemote().sendText(message);
+        SocketResult socketResult = new SocketResult("ServerStat","",runServerService.getServerIsOpen());
+        JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+//        String message = "{\"ServerStat\":\"" + runServerService.getServerIsOpen().toString() + "\"}";
+        session.getBasicRemote().sendText(socketResultJson.toJSONString());
     }
 
     boolean testOnline(String name){
@@ -65,8 +68,12 @@ public class AdminSocketImpl implements SocketRelatedService {
             try {
                 onlineSessions.remove(session.getId());
                 AOPtokens.removeIf(SessionId -> SessionId.getSession().getId().equals(session.getId()));
-                session.getBasicRemote().sendText("{\"ERROR\":\"" + ErrorCode.USER_NOT_ONLINE + "\"}");
-                LogUtil.log.warn("侦测到企图未登陆请求");
+                SocketResult socketResult = new SocketResult("ERROR",ErrorCode.USER_NOT_ONLINE.toString(),ErrorCode.USER_NOT_ONLINE);
+                JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+//                onlineSessions.get(key).getBasicRemote().sendText();
+//                session.getBasicRemote().sendText("{\"ERROR\":\"" + ErrorCode.USER_NOT_ONLINE + "\"}");
+                session.getBasicRemote().sendText(socketResultJson.toJSONString());
+                LogUtil.log.warn("侦测到企图未登陆请求Socket");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -101,9 +108,15 @@ public class AdminSocketImpl implements SocketRelatedService {
                         for (String key:onlineSessions.keySet()) {
                             try {
                                 synchronized(onlineSessions.get(key)){
-                                    onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
+                                    SocketResult socketResult = new SocketResult("ServerStat","",index2);
+                                    JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                                    onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+//                                    onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
                                 }
-                                onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
+                                SocketResult socketResult = new SocketResult("ServerStat","",index2);
+                                JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                                onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+//                                onlineSessions.get(key).getBasicRemote().sendText("{\"ServerStat\":\"" + index2 + "\"}");
                                 index = index2;
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -111,7 +124,7 @@ public class AdminSocketImpl implements SocketRelatedService {
                         }
                     }
                     try {
-                        Thread.sleep(Integer.parseInt(serverInfoSender));
+                        Thread.sleep(Long.parseLong(mcServerStatusSenderTimer));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -130,14 +143,24 @@ public class AdminSocketImpl implements SocketRelatedService {
                     for (String key:onlineSessions.keySet()) {
                         try {
                             synchronized(onlineSessions.get(key)){
-                                onlineSessions.get(key).getBasicRemote().sendText("{\"systemInfo\":[" + JSON.toJSONString(getServerInfoService.setModel()) + "]}");
+                                SocketResult socketResult = null;
+                                try {
+                                    socketResult = new SocketResult("systemInfo","",getServerInfoService.setModel());
+                                } catch (InterruptedException e) {
+                                    socketResult = new SocketResult("ERROR",e.getMessage(),null);
+                                    JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                                    onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+                                }
+                                JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                                onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+//                                onlineSessions.get(key).getBasicRemote().sendText("{\"systemInfo\":[" + JSON.toJSONString(getServerInfoService.setModel()) + "]}");
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LogUtil.log.error(e.getMessage());
                         }
                     }
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(Long.parseLong(serverInfoSenderTimer));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

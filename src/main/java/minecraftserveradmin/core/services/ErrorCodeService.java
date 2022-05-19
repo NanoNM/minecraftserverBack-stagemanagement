@@ -9,9 +9,13 @@ import java.lang.reflect.Field;
 public class ErrorCodeService {
     static StringBuffer errorCodeBuffer = new StringBuffer();
     static {
-        GeErrorCodeService();
+        try {
+            GeErrorCodeService();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-    private static void GeErrorCodeService(){
+    private static void GeErrorCodeService() throws Exception {
         errorCodeBuffer.append("{\"info\": \"errorCode\",\"codes\":{");
         Field[] fields = ErrorCode.class.getFields();
         for (int i = 0;i<fields.length;i++){
@@ -24,11 +28,8 @@ public class ErrorCodeService {
         errorCodeBuffer.append("}}");
     }
 
-    private static Object getConst(String field){
-        try {
-            return ErrorCode.class.getField(field).get(null);
-        } catch (Exception e) {}
-        return null;
+    private static Object getConst(String field) throws Exception {
+        return ErrorCode.class.getField(field).get(null);
     }
 
     public static String getErrorCodeBuffer() {

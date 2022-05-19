@@ -7,7 +7,7 @@ public class ServerInfoModel {
 
     private String systemInfo;
     private String cpuInfo;
-    private Integer cpuUserInfo;
+    private Double cpuUserInfo;
     private Integer memoryUserInfo;
     private String springBootRunningTime;
     private String springBootStartTime;
@@ -62,11 +62,11 @@ public class ServerInfoModel {
         this.cpuInfo = cpuInfo;
     }
 
-    public Integer getCpuUserInfo() {
+    public double getCpuUserInfo() {
         return cpuUserInfo;
     }
 
-    public void setCpuUserInfo(Integer cpuUserInfo) {
+    public void setCpuUserInfo(double cpuUserInfo) {
         this.cpuUserInfo = cpuUserInfo;
     }
 

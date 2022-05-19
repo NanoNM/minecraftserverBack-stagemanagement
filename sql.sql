@@ -1,4 +1,4 @@
-
+use mine;
 
 create table authme
 (
@@ -66,3 +66,6 @@ create table user
     create_by       varchar(30)  default 'system'          null
 );
 
+
+
+select a.id,a.user_name,a.create_time,a.modify_time,a.create_by,a.last_login_time,b.realname from user a left join authme b on a.authme_id = b.id where authority='admin'

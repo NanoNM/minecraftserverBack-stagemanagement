@@ -5,6 +5,7 @@ import minecraftserveradmin.core.entity.UserLoginModel;
 import minecraftserveradmin.core.entity.UserModel;
 import minecraftserveradmin.core.services.impl.UserAdministeredImpl;
 import minecraftserveradmin.core.services.impl.UserUserImpl;
+import minecraftserveradmin.core.util.LogUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,6 +76,7 @@ public class UserController {
     @PostMapping("/admin/login")
     public UserLoginModel adminLogin(@RequestBody JSONObject jsonObject,
                                      HttpServletResponse response) {
+        LogUtil.log.info(jsonObject.getString("username"));
         return userAdministeredImpl.doLogin(jsonObject.getString("username"), jsonObject.getString("password"), "false", response);
     }
 
