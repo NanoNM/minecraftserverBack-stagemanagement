@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 @Service
+@Deprecated
 public class UserAdministeredImpl implements UserService {
     /**
      * 废弃数据库存储在线管理员 使用Map存储管理员

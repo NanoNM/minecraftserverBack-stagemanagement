@@ -169,7 +169,8 @@ public class GetServerInfoService {
                 }
             }
         }
-        return new sun.misc.BASE64Encoder().encode(out.toByteArray());
+
+        return Base64.getEncoder().encodeToString(out.toByteArray());
 
 
 //        return Base64.getEncoder().encode(s.toString().getBytes());

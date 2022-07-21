@@ -30,6 +30,7 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/server/s")
+    @Deprecated
     private String index(@Param("cmd") String cmd) {
 //        return runServerService.doCom(cmd);
         return "接口废弃";
@@ -78,6 +79,7 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/serverTest")
+    @Deprecated
     private String serverTest(){
 //       return runServerService.getServerIsOpen();
         return "接口废弃";

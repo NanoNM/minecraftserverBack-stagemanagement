@@ -19,9 +19,8 @@ public class TokenUtil {
     public Cookie getConnect(){
         long tmp_connect_token = random.nextInt(1000)+System.currentTimeMillis()+random.nextInt(1000);
         String connect_token = DigestUtils.md5DigestAsHex(String.valueOf(tmp_connect_token).getBytes());
-        Cookie connect_token_cookie = new Cookie("connect_token",connect_token);
 
-        return connect_token_cookie;
+        return new Cookie("connect_token",connect_token);
     }
     public Cookie getAutoLoginToken(){
         long tmp_token = random.nextInt(1000)+System.currentTimeMillis()+random.nextInt(1000);
@@ -32,8 +31,7 @@ public class TokenUtil {
     }
     public static String getRandomString(){
         long tmp_token = random.nextInt(1000)+System.currentTimeMillis()+random.nextInt(1000);
-        String token = DigestUtils.md5DigestAsHex(String.valueOf(tmp_token).getBytes());
-        return token;
+        return DigestUtils.md5DigestAsHex(String.valueOf(tmp_token).getBytes());
     }
     public static void getNewToken(Session session, List<AOPtoken> AOPtokens) {
         String testString = TokenUtil.getRandomString();
@@ -60,7 +58,6 @@ public class TokenUtil {
                 DigestUtils.md5DigestAsHex(defaultAdministratorPassword.getBytes()) +
                         DigestUtils.md5DigestAsHex(uuid.getBytes()) +
                         DigestUtils.md5DigestAsHex(defaultAdministratorPassword.getBytes());
-        String pass = DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
-        return pass;
+        return DigestUtils.md5DigestAsHex(tmp_pass.getBytes());
     }
 }

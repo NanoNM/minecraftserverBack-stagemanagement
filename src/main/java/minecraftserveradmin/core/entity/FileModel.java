@@ -128,9 +128,9 @@ public class FileModel {
     }
 
     public  String parseBytes2Hex(byte[] bytes) {
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < bytes.length; i++) {
-            String hex = Integer.toHexString(bytes[i] & 0xFF);
+        StringBuilder sb = new StringBuilder();
+        for (byte aByte : bytes) {
+            String hex = Integer.toHexString(aByte & 0xFF);
             if (hex.length() == 1) {
                 hex = "0" + hex;
             }

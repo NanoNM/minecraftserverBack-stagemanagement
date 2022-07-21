@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Deprecated
 public class FIleOperationImpl implements FileOperationService {
     GetServerInfoService getServerInfoService = new GetServerInfoService();
     public boolean testSystem(){

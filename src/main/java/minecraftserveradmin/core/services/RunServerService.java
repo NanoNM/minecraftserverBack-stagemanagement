@@ -75,7 +75,7 @@ public class RunServerService {
 //                            LogUtil.log.info();
 //                        JSONObject jsonObject = new JSONObject();
 //                        jsonObject.put("console", new String(line.getBytes(), System.getProperty("file.encoding")) + "\n");
-                        SocketResult socketResult = new SocketResult("console","",new String(line.getBytes(), System.getProperty("file.encoding")) + "\n");
+                        SocketResult socketResult = new SocketResult("console","",new String(("[Minecraft]: "+line).getBytes(), System.getProperty("file.encoding")) + "\n");
                         JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
                         AdminSocketImpl.sendMessageToAll(socketResultJson.toJSONString(),WebSocketService.onlineSessions);
                     }
@@ -144,14 +144,18 @@ public class RunServerService {
                         if (destroyTime > 10){
                             Time.sleep(200);
                             LogUtil.log.info("关闭进程尝试10次还是失败 使用TASKKILL");
-                            if (Platform.isWindows()) {
-                                Process processTasKill = Runtime.getRuntime().exec("TASKKILL /PID " + pid);
-                            } else if (Platform.isLinux() || Platform.isAIX()) {
-                                Process processTasKill = Runtime.getRuntime().exec("kill " + pid);
-                            } else {
-                            }
-                            if (process.isAlive()){
-                                LogUtil.log.info("草 使用TASKKILL也失败了 你干了啥？？？ 你启动了啥？？？ 建议重启管理面板主程序 实在不行你关机吧");
+                            if (pid!=-1){
+                                if (Platform.isWindows()) {
+                                    Process processTasKill = Runtime.getRuntime().exec("TASKKILL /PID " + pid);
+                                } else if (Platform.isLinux() || Platform.isAIX()) {
+                                    Process processTasKill = Runtime.getRuntime().exec("kill " + pid);
+                                } else {
+                                }
+                                if (process.isAlive()){
+                                    LogUtil.log.error("草 使用TASKKILL也失败了 你干了啥？？？ 你启动了啥？？？ 建议重启管理面板主程序 实在不行你关机吧");
+                                }
+                            }else {
+                                LogUtil.log.error("获取pid失败");
                             }
                             break;
                         }
