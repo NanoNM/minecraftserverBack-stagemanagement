@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 @Service
 public interface UserService {
-    Integer doAdminRegister(String adminName, String name, String passwd, String email);
+    Integer doRegister(String adminName, String name, String passwd, String email);
     UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response);
     void doLogout(String name);
     UserLoginModel doAutoLogin(String token);

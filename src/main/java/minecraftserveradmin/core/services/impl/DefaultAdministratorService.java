@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
+import static minecraftserveradmin.core.util.RandomPasswd.randomPassword;
+
 @Component
 @Order(value = 1)
 public class DefaultAdministratorService implements OnStartService {
@@ -23,12 +25,20 @@ public class DefaultAdministratorService implements OnStartService {
     String defaultAdministratorPassword;
     @Override
     public void run(ApplicationArguments args) {
+//        userDao.selectUserCreateBySystem();
+//        if (==0){
+//
+//        }
         if (userDao.selectAdminUserWithOutName().length==0){
-            LogUtil.log.info("默认管理员已添加");
+            if ("admin".equals(defaultAdministratorPassword)){
+                defaultAdministratorPassword = randomPassword();
+            }
             String uuid = UUID.randomUUID().toString();
             uuid = uuid.replace("-", "");
             String pass = TokenUtil.getPassword(defaultAdministratorPassword,uuid);
             userDao.insertAdminUser(defaultAdministrator,"",pass,"admin",-1,uuid,"system");
+            LogUtil.log.info("默认管理员已添加");
+            LogUtil.log.info("默认管理员密码: " + defaultAdministratorPassword);
         }
     }
 }

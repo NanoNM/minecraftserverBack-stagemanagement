@@ -16,6 +16,8 @@ public class ErrorCode {
     public static final Integer ADMIN_REG_SUCCESS = 1011;
     public static final Integer USER_CHANGE_PASSWORD_SUCCESS = 1012;
     public static final Integer DELETE_ADMINUSER_SUCCESS = 1013;
+    public static final Integer USER_REG_SUCCESS = 1014;
+
 
 
     public static final Integer SAME_USER_NAME = 3002;

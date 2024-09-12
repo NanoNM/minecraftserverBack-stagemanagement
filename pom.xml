@@ -11,9 +11,9 @@
     </parent>
     <groupId>minecraftserveradmin</groupId>
     <artifactId>core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>Mine 0.1</version>
     <name>core</name>
-    <description>Demo project for Spring Boot</description>
+    <description>Minecraft Server Manager</description>
 
     <properties>
         <java.version>1.8</java.version>
@@ -27,7 +27,7 @@
             <version>4.9.0</version>
         </dependency>
 
-        <!--        https://mvnrepository.com/artifact/org.apache.any23/apache-any23-encoding-->
+        <!-- https://mvnrepository.com/artifact/org.apache.any23/apache-any23-encoding -->
         <dependency>
             <groupId>org.apache.any23</groupId>
             <artifactId>apache-any23-encoding</artifactId>
@@ -40,13 +40,19 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
             <version>2.3.1.RELEASE</version>
         </dependency>
-        <!--        yaml-->
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/net.java.dev.jna/jna &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>net.java.dev.jna</groupId>-->
+<!--            <artifactId>jna</artifactId>-->
+<!--            <version>5.8.0</version>-->
+<!--        </dependency>-->
+        <!-- yaml -->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.10</version>
+            <version>1.26</version>
         </dependency>
-        <!-- Gson       -->
+        <!-- Gson -->
         <dependency>
             <groupId>com.3sidedcube.util</groupId>
             <artifactId>GeoGson</artifactId>

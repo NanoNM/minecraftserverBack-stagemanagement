@@ -25,7 +25,7 @@ public class PluginsSettingController {
     //mod启用禁用
     @ResponseBody
     @GetMapping("/admin/pluginScanning")
-    public List enumMod(@Param("cmd") String cmd,@Param("filename") String filename){
+    public List enumMod(@RequestParam("name") String adminName, @RequestParam(value = "cmd", required = false) String cmd,@RequestParam(value = "filename", required = false) String filename){
         if (cmd == null){
             return getPluginsListService.doScan();
         }else if("able".equals(cmd)){
@@ -34,6 +34,9 @@ public class PluginsSettingController {
             getPluginsListService.disable(filename);
         }else if("remove".equals(cmd)){
             getPluginsListService.remove(filename);
+        }else if("completelyDelete".equals(cmd)){
+            System.out.println("completelyDelete");
+            getPluginsListService.CPRemove(adminName, filename);
         }
         return null;
     }
@@ -41,14 +44,14 @@ public class PluginsSettingController {
     //mod删除
     @ResponseBody
     @GetMapping("/admin/repluginMove")
-    public String removeMod(@Param("cmd") String cmd,@Param("filename") String filename){
+    public String removeMod(@RequestParam("cmd") String cmd,@RequestParam("filename") String filename){
         return "功能未实现！！";
     }
 
     //mod信息
     @ResponseBody
     @GetMapping("/admin/moreplugininfo")
-    public Map<String, Object> removeMod(@Param("filename") String filename){
+    public Map<String, Object> removeMod(@RequestParam("filename") String filename){
         return getPluginsListService.morePluginInfo(filename);
     }
 

@@ -23,11 +23,12 @@ public class FIleOperationImpl implements FileOperationService {
         projectPath  = System.getProperty("user.dir");
     }
     @Override
-    public List rootDir() throws IOException {
+    public List<FileModel> rootDir() throws IOException {
         List<FileModel> fileModelList = new ArrayList<>();
         // /src/main/java/minecraftserveradmin/core/services/impl
         File file = new File(projectPath);
         File[] fs = file.listFiles();	//遍历path下的文件和目录，放在File数组中
+        assert fs != null;
         for(File f:fs){					//遍历File[]数组
             if(!f.isDirectory())		//若非目录(即文件)，则打印
             {
@@ -50,6 +51,7 @@ public class FIleOperationImpl implements FileOperationService {
         List<FileModel> fileModelList = new ArrayList<>();
         File file = new File(name);
         File[] fs = file.listFiles();	//遍历path下的文件和目录，放在File数组中
+        assert fs != null;
         for(File f:fs) {                    //遍历File[]数组
             if (!f.isDirectory())        //若非目录(即文件)，则打印
             {

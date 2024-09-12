@@ -1,12 +1,20 @@
 package minecraftserveradmin.core.services;
 
+import com.alibaba.fastjson.JSONObject;
+import com.sun.jna.Platform;
+import minecraftserveradmin.core.controller.WebSocketService;
+import minecraftserveradmin.core.services.impl.AdminSocketImpl;
+import minecraftserveradmin.core.util.Kernel32;
 import minecraftserveradmin.core.util.LogUtil;
+import minecraftserveradmin.core.util.StaticDataUtil;
 import org.apache.ibatis.annotations.Param;
+import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -16,9 +24,8 @@ import static minecraftserveradmin.core.util.TimeUtil.MCServerStartTime;
 public class RunServerService {
     int a = 1;
     public static Process process;
+    public static long pid = -1;
     private Integer serverIsOpen = 0;
-
-    public static String com;
 
     @Autowired
     SocketHandlerServices socketHandlerServices;
@@ -30,33 +37,49 @@ public class RunServerService {
         return "Windows".equals(getServerInfoService.getSystem());
     }
 
-    @Value("${minecraft.startservercmd}")
-    public void setCom(String com) {
-        RunServerService.com = com;
-    }
 
     public Integer doCom(String cmd){
-//        String projectPath  = System.getProperty("user.dir");
-//        String target = projectPath.concat("\\MineCraftServer");
-//        System.setProperty("user.dir", target);
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
                 //System.out.println(System.getProperty("user.dir"));
-                System.out.println(com);
-                process = Runtime.getRuntime().exec(com);
-            }
+                LogUtil.log.info("jar包通过指令==>" + StaticDataUtil.cmd +"执行了");
+                process = Runtime.getRuntime().exec(StaticDataUtil.cmd);
 
+                Field field = null;
+                if (Platform.isWindows()) {
+                    try {
+                        field = process.getClass().getDeclaredField("handle");
+                        field.setAccessible(true);
+                        pid = Kernel32.INSTANCE.GetProcessId((Long) field.get(process));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                } else if (Platform.isLinux() || Platform.isAIX()) {
+                    try {
+                        Class<?> clazz = Class.forName("java.lang.UNIXProcess");
+                        field = clazz.getDeclaredField("pid");
+                        field.setAccessible(true);
+                        pid = (Integer) field.get(process);
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                }
+            }
             Thread threadReader = new Thread(new Runnable() {
                 @Override
                 public void run(){
                     MCServerStartTime = System.currentTimeMillis();
                     LogUtil.log.info("我的世界服务器启动");
                     InputStream inputStream = process.getInputStream();
-                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                     String line = null;
                     try {
+                        BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, System.getProperties().get("sun.jnu.encoding").toString()));
                         while((line = br.readLine())!= null){
-//                            LogUtil.log.info(line);
+//                            LogUtil.log.info();
+                           JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("console", new String(line.getBytes(), StandardCharsets.UTF_8) + "\n");
+                            AdminSocketImpl.sendMessageToAll(jsonObject.toJSONString(),WebSocketService.onlineSessions);
                         }
                         serverIsOpen = 0;
                         inputStream.close();
@@ -82,7 +105,10 @@ public class RunServerService {
                                 break;
                             }
                             if (!befline.equals(line)){
+                                LogUtil.log.error("==================异常=================");
                                 LogUtil.log.error(line);
+                                LogUtil.log.error("================异常结束================");
+
                                 befline = line;
                             }
                             Thread.sleep(250);
@@ -118,7 +144,27 @@ public class RunServerService {
                 // 极度不安全的强制关机
                 if("hardstop".equals(cmd)){
                     LogUtil.log.info("我的世界服务器强制关机指令送达");
-                    process.destroy();
+                    int destroyTime = 1;
+                    while (process.isAlive()){
+                        LogUtil.log.info("关闭进程尝试 " + destroyTime +"次！");
+                        process.destroy();
+                        process = process.destroyForcibly();
+                        if (destroyTime > 10){
+                            Time.sleep(200);
+                            LogUtil.log.info("关闭进程尝试10次还是失败 使用TASKKILL");
+                            if (Platform.isWindows()) {
+                                Process processTasKill = Runtime.getRuntime().exec("TASKKILL /PID " + pid);
+                            } else if (Platform.isLinux() || Platform.isAIX()) {
+                                Process processTasKill = Runtime.getRuntime().exec("kill " + pid);
+                            } else {
+                            }
+                            if (process.isAlive()){
+                                LogUtil.log.info("草 使用TASKKILL也失败了 你干了啥？？？ 你启动了啥？？？ 建议重启管理面板主程序 实在不行你关机吧");
+                            }
+                            break;
+                        }
+                        destroyTime++;
+                    }
                     return 0;
                 }
                 threadSender.start();
@@ -134,6 +180,7 @@ public class RunServerService {
         } catch (IOException e) {
             LogUtil.log.error(e.getMessage());
         }
+        StaticDataUtil.cmd = "java -jar";
         return serverIsOpen;
     }
 

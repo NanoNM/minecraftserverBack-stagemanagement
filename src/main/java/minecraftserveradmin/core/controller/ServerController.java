@@ -1,6 +1,7 @@
 package minecraftserveradmin.core.controller;
 
 import minecraftserveradmin.core.services.FormatServerSettingService;
+import minecraftserveradmin.core.services.GetServerInfoService;
 import minecraftserveradmin.core.services.RunServerService;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,12 +9,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
+import java.util.List;
 
 @Controller
 public class ServerController {
 
     @Autowired
     RunServerService runServerService;
+
+    @Autowired
+    GetServerInfoService getServerInfoService;
 
     @Autowired
     FormatServerSettingService formatServerSettingService;
@@ -28,6 +33,18 @@ public class ServerController {
     private String index(@Param("cmd") String cmd) {
 //        return runServerService.doCom(cmd);
         return "接口废弃";
+    }
+
+    @ResponseBody
+    @GetMapping("/admin/getjar")
+    private List<String> getJar() {
+        try {
+            return getServerInfoService.getJar();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+//        return runServerService.doCom();
+        return null;
     }
 
     /**
@@ -95,10 +112,11 @@ public class ServerController {
         }
     }
 
-//    @ResponseBody
-//    @GetMapping("/admin/setsetting")
-//    public boolean setSetting(@Param("jsonstr") JSONObject jsonParam) throws IOException {
-////        formatServerSettingService.settingFormat(jsonParam);
-//        return true;
-//    }
+    @ResponseBody
+    @GetMapping("/admin/synchronizationConsole")
+    public String synchronizationConsole() throws IOException {
+        return getServerInfoService.synchronizationConsole();
+    }
 }
+
+

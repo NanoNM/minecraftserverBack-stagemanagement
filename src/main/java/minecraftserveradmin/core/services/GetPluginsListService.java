@@ -128,4 +128,20 @@ public class GetPluginsListService {
             }
         }
     }
+
+    public void CPRemove(String adminName, String filename) {
+        String path = ".//plugins";
+        File file = new File(path);
+        File[] fs = file.listFiles();
+        assert fs != null;
+        for (File f : fs) {
+            if (f.getName().contains(filename) && f.isFile()) {
+                if(f.delete()){
+                    LogUtil.log.warn(adminName + "删除了一个文件" + filename);
+                }else{
+                    LogUtil.log.warn(adminName + "删除" + filename + "失败了");
+                }
+            }
+        }
+    }
 }
