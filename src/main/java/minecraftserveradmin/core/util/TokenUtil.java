@@ -9,12 +9,14 @@ import org.springframework.util.DigestUtils;
 import javax.servlet.http.Cookie;
 import javax.websocket.Session;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 
 @Component
 public class TokenUtil {
-    static Random random = new Random(1000);
+    static SecureRandom random = new SecureRandom(); 
+    // static Random random = new Random(1000);
 
     public Cookie getConnect(){
         long tmp_connect_token = random.nextInt(1000)+System.currentTimeMillis()+random.nextInt(1000);

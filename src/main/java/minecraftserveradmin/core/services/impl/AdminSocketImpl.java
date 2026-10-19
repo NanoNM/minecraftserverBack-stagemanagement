@@ -5,9 +5,11 @@ import minecraftserveradmin.core.dto.SocketResult;
 import minecraftserveradmin.core.dao.UserDao;
 import minecraftserveradmin.core.entity.AOPtoken;
 import minecraftserveradmin.core.entity.OlineUserModel;
+import minecraftserveradmin.core.entity.ServerInfoModel;
 import minecraftserveradmin.core.services.FormatServerSettingService;
 import minecraftserveradmin.core.services.GetServerInfoService;
 import minecraftserveradmin.core.services.RunServerService;
+import minecraftserveradmin.core.services.SocketHandlerServices;
 import minecraftserveradmin.core.services.SocketRelatedService;
 import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.LogUtil;
@@ -28,6 +30,9 @@ public class AdminSocketImpl implements SocketRelatedService {
     private static final RunServerService runServerService = new RunServerService();
     private static final GetServerInfoService getServerInfoService = new GetServerInfoService();
     private static final FormatServerSettingService formatServerSettingService = new FormatServerSettingService();
+
+    @Autowired
+    SocketHandlerServices socketHandlerServices;
 
     @Autowired
     UserDao userDao;
@@ -140,23 +145,26 @@ public class AdminSocketImpl implements SocketRelatedService {
             public void run() {
                 int index = -1;
                 while(true){
-                    for (String key:onlineSessions.keySet()) {
+                    if (!onlineSessions.isEmpty()){
+                        ServerInfoModel model = null;
                         try {
-                            synchronized(onlineSessions.get(key)){
-                                SocketResult socketResult = null;
-                                try {
-                                    socketResult = new SocketResult("systemInfo","",getServerInfoService.setModel());
-                                } catch (InterruptedException e) {
-                                    socketResult = new SocketResult("ERROR",e.getMessage(),null);
-                                    JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
-                                    onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
+                            model = getServerInfoService.setModel();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        SocketResult socketResult = model==null
+                                ? new SocketResult("ERROR","获取服务器信息失败",null)
+                                : new SocketResult("systemInfo","",model);
+                        JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
+                        String message = socketResultJson.toJSONString();
+                        for (String key:onlineSessions.keySet()) {
+                            try {
+                                synchronized(onlineSessions.get(key)){
+                                    onlineSessions.get(key).getBasicRemote().sendText(message);
                                 }
-                                JSONObject socketResultJson = (JSONObject) JSONObject.toJSON(socketResult);
-                                onlineSessions.get(key).getBasicRemote().sendText(socketResultJson.toJSONString());
-//                                onlineSessions.get(key).getBasicRemote().sendText("{\"systemInfo\":[" + JSON.toJSONString(getServerInfoService.setModel()) + "]}");
+                            } catch (IOException e) {
+                                LogUtil.log.error(e.getMessage());
                             }
-                        } catch (IOException e) {
-                            LogUtil.log.error(e.getMessage());
                         }
                     }
                     try {

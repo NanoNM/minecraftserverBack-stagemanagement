@@ -1,0 +1,40 @@
+# 构建输出
+target/
+build/
+out/
+*.class
+
+# 日志
+logs/
+*.log
+*.log.gz
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# 操作系统
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Postman
+.postman/
+postman/
+
+# 本地环境与凭据
+.env
+*.local
+
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*~

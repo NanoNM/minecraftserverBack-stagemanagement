@@ -9,6 +9,6 @@ import javax.servlet.http.HttpServletResponse;
 public interface UserService {
     Integer doRegister(String adminName, String name, String passwd, String email);
     UserLoginModel doLogin(String name, String pass, String autoLogin, HttpServletResponse response);
-    void doLogout(String name);
+    String doLogout(String name);
     UserLoginModel doAutoLogin(String token);
 }

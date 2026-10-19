@@ -93,10 +93,18 @@ public class WebSocketService {
             if (UserAdministeredImpl.onlineadmin.size() > 0) {
                 for (OlineUserModel s : UserAdministeredImpl.onlineadmin) {
                     if (s.getUserID().equals(userId)) {
+                        // 已有旧会话时踢掉旧的，允许新连接顶替
                         if (s.getSession() != null){
-                            LogUtil.log.warn("有一个重复的用户请求登录名为: " + userId);
-                            session.close();
-                            return;
+                            String oldSessionId = s.getSession().getId();
+                            LogUtil.log.warn("用户 " + userId + " 重复连接，踢掉旧会话: " + oldSessionId);
+                            onlineSessions.remove(oldSessionId);
+                            AOPtokens.removeIf(token -> token.getSession() != null
+                                    && oldSessionId.equals(token.getSession().getId()));
+                            try {
+                                s.getSession().close();
+                            } catch (IOException e) {
+                                LogUtil.log.error("关闭旧会话失败: " + e.getMessage());
+                            }
                         }
                         s.setSession(session);
                         onlineSessions.put(session.getId(), session);
@@ -121,13 +129,31 @@ public class WebSocketService {
      * 当客户端发送消息：1.获取它的用户名和消息 2.发送消息给所有人
      * <p>
      * PS: 这里约定传递的消息为JSON字符串 方便传递更多参数！
+     * <p>
+     * 消息按 {@code name} 字段分为三类，处理逻辑如下：
+     * <ol>
+     *   <li>{@code name = "name"}：客户端首次上报身份。遍历 {@link #AOPtokens}，
+     *       找到 token 匹配且尚未绑定用户名的条目，把 {@code value} 作为用户名绑定上去。
+     *       这是后续所有鉴权的前置步骤。</li>
+     *   <li>{@code name = "verification"}：心跳/校验消息，当前不做任何处理。</li>
+     *   <li>其他：先经 {@link #BaseTokenVerification} 校验 token，
+     *       通过后交给 {@link AdminSocketImpl#message} 执行业务指令，
+     *       并立即轮换新 token（旧 token 失效，保证一次性使用）。</li>
+     * </ol>
+     * 校验未通过时仅记录告警日志，不回复客户端。
+     *
+     * @param session 当前 WebSocket 会话
+     * @param jsonStr 客户端发来的 JSON 字符串，约定包含 name、value、token 等字段
+     * @throws IOException 发送消息失败时抛出
      */
     @OnMessage
     public void onMessage(Session session, String jsonStr) throws IOException {
         JSONObject jb = JSONObject.parseObject(jsonStr);
+        // 非法 JSON，直接忽略
         if (jb == null)
             return;
         String name = jb.getString("value");
+        // 分支一：客户端上报身份，把用户名绑定到对应的 token 条目上
         if ("name".equals(jb.getString("name"))){
 //            if(){
 //                LogUtil.log.warn("有一个未登录的用户请求登录名为: " + name);
@@ -136,18 +162,22 @@ public class WebSocketService {
             if (AOPtokens.size()>0){
                 for (AOPtoken aoPtoken : AOPtokens) {
                     if(aoPtoken.getToken().equals(jb.getString("token"))){
+                        // 仅在尚未绑定时写入，避免被后续消息覆盖
                         if (aoPtoken.getName()==null){
                             aoPtoken.setName(jb.getString("value"));
                         }
                     }
                 }
             }
+        // 分支二：token 校验通过，执行业务指令并轮换 token
         } else if (BaseTokenVerification(session, jsonStr)){
             String returnstr = adminSocketImpl.message(session, jsonStr, onlineSessions, AOPtokens);
             TokenUtil.getNewToken(session, AOPtokens);
+        // 分支三：心跳/校验消息，暂不处理
         }else if("verification".equals(jb.getString("name"))){
 
         }
+        // 分支四：token 校验未通过
         else{
             LogUtil.log.warn("有一个token检查未通过的ws申请");
         }

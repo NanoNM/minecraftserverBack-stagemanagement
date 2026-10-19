@@ -229,8 +229,8 @@ public class NewFIleOperationImpl implements NewFileOperationService {
         File f = new File(source);
         File f2 = new File(dest);
         try {
-            Files.copy(f.toPath(), f2.toPath());
-            f.delete();
+            Files.move(f.toPath(), f2.toPath());
+            // f.delete();
             return ErrorCode.FILE_MOVE_SUCCESS;
         } catch (FileAlreadyExistsException e) {
             return ErrorCode.FILE_ALREADY_EXISTS;

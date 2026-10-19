@@ -41,5 +41,6 @@ public class ErrorCode {
     public static final Integer ADMIN_ALREADY_FAIL = 3029;
     public static final Integer USER_CHANGE_PASSWORD_FAIL = 3030;
     public static final Integer DELETE_ADMINUSER_FAIL = 3031;
+    public static final Integer LOGIN_LOCKED = 3032;
 
 }

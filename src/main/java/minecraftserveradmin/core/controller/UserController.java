@@ -85,9 +85,18 @@ public class UserController {
         return userUserImpl.doAutoLogin(token);
     }
 
-    @GetMapping("/userloginout")
-    private void userLoginOut(@RequestParam("name") String name) {
-        userUserImpl.doLogout(name);
+    @PostMapping("/userloginout")
+    private String userLoginOut(@CookieValue(value = "token", required = false) String token,
+                                @CookieValue(value = "connect_token", required = false) String connectToken) {
+        // 身份由 cookie 反查得出，不信任客户端传入的用户名
+        String name = userUserImpl.getNameByToken(token);
+        if (name == null) {
+            name = userUserImpl.getNameByToken(connectToken);
+        }
+        if (name == null) {
+            return "failure";
+        }
+        return userUserImpl.doLogout(name);
     }
 
 
