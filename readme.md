@@ -77,6 +77,8 @@ java -jar target/core-Mine 0.1.jar
 | `spring.servlet.multipart.max-file-size` | `20MB` | 单文件上传上限 |
 | `spring.servlet.multipart.max-request-size` | `20MB` | 单次请求上限 |
 | `minecraft.startservercmd` | `java -jar server.jar nogui` | MC 服务端启动命令 |
+| `minecraft.java.path` | `java` | 启动 MC 服务端的 Java 可执行文件；可填写绝对路径，例如 `C:/Program Files/Java/jdk-17/bin/java.exe` |
+| `minecraft.jvm-args-file` | `user_jvm_args.txt` | Java 启动参数文件路径，相对路径以管理面板进程的工作目录为基准 |
 | `server.mcServerStatusSenderTimer` | `1000` | MC 运行状态推送间隔（ms） |
 | `server.serverInfoSenderTimer` | `4000` | 系统信息推送间隔（ms） |
 | `MCM.Default.administrator.username` | `admin` | 默认管理员用户名 |
@@ -86,6 +88,8 @@ java -jar target/core-Mine 0.1.jar
 | `MCM.Minecraft.logplugin.table` | `authme` | 登录插件表名 |
 | `MCM.login.maxAttempts` | `5` | 登录连续失败上限 |
 | `MCM.login.lockMinutes` | `15` | 达到上限后的锁定分钟数 |
+
+Minecraft JVM 参数（如 `-Xms`、`-Xmx`）写入工作目录下的 `user_jvm_args.txt`，启动时由 Java 参数文件加载。此功能要求 Minecraft 使用的 Java 为 9 或更高版本（建议 17 或 21）；如果启动日志显示 `Could not find or load main class @...user_jvm_args.txt`，请检查 `minecraft.java.path` 是否指向支持参数文件的 Java。jar 文件名及服务端参数由启动指令传入，例如 `server.jar nogui`（不要在该字段中重复填写 `java -jar`）。指定自定义 Java 安装路径时，将 `minecraft.java.path` 设置为该 Java 可执行文件的路径。
 
 ---
 
@@ -185,6 +189,329 @@ token 由 WebSocket 下发，**一次性使用**：校验通过后立即轮换�
 |---|---|---|
 | GET | `/` | 首页 |
 | GET | `/errorcode` | 获取全部错误码 |
+
+---
+
+## 详细 HTTP 接口文档
+
+### 1. 通用约定
+
+- 基础地址：`http://<host>:25567`
+- 所有 `/admin/**` 接口都由 `AdminOperationIntercept` 进行鉴权校验；除了 `OPTIONS`，必须在 URL 中附带：
+
+```http
+GET /admin/getalladmin?page=1&name=admin&token=<token>
+```
+
+- `token` 是 WebSocket 登录成功后下发的临时令牌，校验通过后会立即轮换，旧 token 失效。
+- 仅少数接口使用 `application/json`，多数接口采用表单参数或查询参数，返回值可能是原始对象、数组、字符串或状态码。
+- 业务状态码统一由 `ErrorCode` 定义，成功值多为 `1000+`，失败值为 `3000+`，调用 `/errorcode` 可获取完整映射。
+
+### 2. 用户与登录
+
+#### `POST /login`
+
+普通用户登录。
+
+请求参数：
+
+| 参数 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `username` | string | 是 | 用户名 |
+| `passwd` | string | 是 | 密码 |
+| `isautologin` | string | 是 | 是否自动登录，通常传 `true`/`false` |
+
+返回：`UserLoginModel`
+
+```json
+{
+  "userModel": {
+    "ID": 1,
+    "user_name": "alice",
+    "email": "alice@example.com",
+    "authority": "user"
+  },
+  "code": 1000,
+  "connect_token": "<token>"
+}
+```
+
+#### `POST /admin/login`
+
+管理员登录，`requestBody` 为 JSON：
+
+```json
+{
+  "username": "admin",
+  "password": "123456"
+}
+```
+
+返回：`UserLoginModel`，成功后可拿到 `connect_token`，后续需通过 WebSocket 绑定身份。
+
+#### `GET /autologin?token=...`
+
+自动登录接口（当前未正式启用）。
+
+#### `POST /userloginout`
+
+退出登录。服务端通过 cookie 中的 `token` / `connect_token` 反查用户名，不信任客户端传入的用户名。
+
+Cookie：
+
+- `token`
+- `connect_token`
+
+返回：
+
+- `failure`：未找到有效登录态
+- 其他：业务层退出处理结果
+
+#### `GET /admin/getalladmin?page=1`
+
+分页查询管理员列表。
+
+返回：`UserModel[]`
+
+#### `GET /admin/getalluser?page=1`
+
+分页查询普通用户列表。
+
+#### `GET /admin/suchuserbyname?suchname=alice`
+
+按用户名搜索用户。
+
+返回：`UserModel[]`
+
+#### `POST /admin/modifypassword`
+
+修改密码。
+
+请求参数：
+
+| 参数 | 说明 |
+|---|---|
+| `newps` | 新密码 |
+| `username` | 目标用户名 |
+
+返回：`Integer`，成功时返回 `USER_CHANGE_PASSWORD_SUCCESS`（1012），失败返回 `USER_CHANGE_PASSWORD_FAIL`（3030）。
+
+#### `GET /admin/deleteAdministrator?name=<adminName>&username=<targetUser>`
+
+删除管理员账号。
+
+返回：`Integer`，成功返回 `DELETE_ADMINUSER_SUCCESS`（1013），失败返回 `DELETE_ADMINUSER_FAIL`（3031）。
+
+#### `POST /admin/register`
+
+注册管理员。
+
+表单参数：
+
+| 参数 | 说明 |
+|---|---|
+| `name` | 当前操作管理员用户名 |
+| `regname` | 新管理员用户名 |
+| `passwd` | 密码 |
+| `email` | 邮箱 |
+
+返回：`Integer`，成功返回 `ADMIN_REG_SUCCESS`（1011）。
+
+#### `POST /admin/registeruser`
+
+注册普通用户。
+
+参数与 `/admin/register` 一致，返回 `USER_REG_SUCCESS`（1014）。
+
+---
+
+### 3. 服务器管理
+
+#### `GET /admin/getjar`
+
+列出服务器可用的 jar 包文件名。
+
+返回：`List<String>`
+
+#### `GET /admin/getsetting`
+
+读取当前 `server.properties` 配置。
+
+返回：JSON 字符串，格式为 `server.properties` 内容解析后的文本/结构化字符串。
+
+#### `GET /admin/setsetting?jsonstr=...`
+
+写入 `server.properties`。
+
+请求参数：
+
+| 参数 | 说明 |
+|---|---|
+| `jsonstr` | 需要写入的 JSON 配置串 |
+
+返回：`boolean`，成功 `true`，失败 `false`。
+
+#### `GET /admin/synchronizationConsole`
+
+获取服务器控制台日志。
+
+返回：字符串内容；实际实现中可包含日志输出或者压缩/编码后的文本，需按服务端返回值处理。
+
+#### 已废弃接口
+
+- `GET /admin/server/s`
+- `GET /admin/server`
+- `GET /admin/serverTest`
+
+这些接口当前仅返回字符串 `"接口废弃"`，前端不应继续依赖。
+
+---
+
+### 4. 文件管理
+
+所有文件管理接口均位于 `/admin`，且需要先完成鉴权。
+
+#### `GET /admin/file?path=<目录路径>`
+
+列出目录内容。若不传 `path`，默认列出根目录。
+
+返回：`List`，每个元素为文件/目录信息。
+
+#### `GET /admin/renameFile?path=<旧路径>&rename=<新名称>`
+
+重命名文件或目录。
+
+返回：`Integer` 错误码，成功 `FILE_RENAME_SUCCESS`（1003），失败 `FILE_RENAME_ERROR`（3008）。
+
+#### `GET /admin/download?path=<文件路径>`
+
+下载文件。
+
+返回：二进制文件流。此接口通过 `HttpServletResponse` 直接输出内容。
+
+#### `POST /admin/fileeditor`
+
+编辑文件内容。
+
+表单参数：
+
+| 参数 | 说明 |
+|---|---|
+| `path` | 文件路径 |
+| `string` | 新文件内容 |
+
+返回：`Integer`，成功 `FILE_EDIT_SUCCES`（1005），失败 `FILE_EDIT_FAIL`（3010）。
+
+#### `GET /admin/filedelete?path=<路径>`
+
+删除文件或目录。
+
+返回：`Integer`，成功 `FILE_REMOVE_SUCCES`（1006），失败 `FILE_REMOVE_FILE`（3011）。
+
+#### `GET /admin/mkdir?path=<目录路径>`
+
+新建目录。
+
+返回：`Integer`，成功 `FOLDER_CREATED_SUCCESSFULLY`（1007），失败 `FOLDER_CREATED_FAIL`（3013）。
+
+#### `GET /admin/makefile?path=<文件路径>`
+
+新建文件。
+
+返回：`Integer`，成功 `FILE_CREATED_SUCCESSFULLY`（1008），失败 `FILE_CREATED_FAIL`（3015）。
+
+#### `GET /admin/filecopy?source=<源路径>&dest=<目标路径>`
+
+复制文件或目录。
+
+返回：`Integer`，成功 `FILE_COPY_SUCCESS`（1009），失败 `FILE_COPY_FAIL`（3016）。
+
+#### `GET /admin/filemove?source=<源路径>&dest=<目标路径>`
+
+移动文件或目录。
+
+返回：`Integer`，成功 `FILE_MOVE_SUCCESS`（1010），失败 `FILE_MOVE_FAIL`（3017）。
+
+---
+
+### 5. Mod 与插件管理
+
+#### `GET /admin/modScanning?name=<管理员名>&cmd=<操作>&filename=<文件名>`
+
+扫描 Mod 列表、启用/禁用/移除/彻底删除。
+
+`cmd` 可选值：
+
+- `able`：启用
+- `disable`：禁用
+- `remove`：移除
+- `completelyDelete`：彻底删除
+- 不传 `cmd`：返回列表
+
+返回：`List`（扫描结果列表）
+
+#### `GET /admin/moremodinfo?filename=<mod文件名>`
+
+读取 Mod 元数据，如 `mcmod.info`。
+
+返回：`String`
+
+#### `POST /admin/upfilemods`
+
+上传 Mod 文件。
+
+表单参数：
+
+| 参数 | 说明 |
+|---|---|
+| `file` | Multipart 文件 |
+
+返回：`Integer`，成功 `FILE_UPDATE_SUCCESS`（1002），失败 `NO_FILE_UPDATE`（3007）。
+
+#### `GET /admin/pluginScanning?name=<管理员名>&cmd=<操作>&filename=<插件文件名>`
+
+扫描插件列表，逻辑与 Mod 一致。
+
+#### `GET /admin/moreplugininfo?filename=<插件文件名>`
+
+读取插件配置元数据，如 `plugin.yml`。
+
+返回：`Map<String, Object>`
+
+#### `POST /admin/upfileplugins`
+
+上传插件文件，参数同 `upfilemods`。
+
+---
+
+### 6. 错误码
+
+`GET /errorcode` 返回所有错误码定义，示例：
+
+```json
+{
+  "info": "errorCode",
+  "codes": {
+    "LOGIN_SUCCESS": 1000,
+    "REGISTER_SUCCESS": 1001,
+    "NO_USER_FIND": 3003,
+    "WRONG_PASSWORD": 3004,
+    "LOGIN_LOCKED": 3032
+  }
+}
+```
+
+关键错误码：
+
+| 名称 | 值 | 含义 |
+|---|---:|---|
+| `LOGIN_SUCCESS` | `1000` | 登录成功 |
+| `FILE_UPDATE_SUCCESS` | `1002` | 文件上传成功 |
+| `USER_CHANGE_PASSWORD_SUCCESS` | `1012` | 修改密码成功 |
+| `NO_USER_FIND` | `3003` | 用户不存在 |
+| `WRONG_PASSWORD` | `3004` | 密码错误 |
+| `NO_FILE_UPDATE` | `3007` | 上传失败/为空 |
+| `LOGIN_LOCKED` | `3032` | 账户已被锁定 |
 
 ---
 

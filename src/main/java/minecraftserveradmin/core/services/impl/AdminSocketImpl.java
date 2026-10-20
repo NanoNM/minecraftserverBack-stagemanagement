@@ -27,9 +27,14 @@ import java.util.Map;
 public class AdminSocketImpl implements SocketRelatedService {
 
     private static String testString;
-    private static final RunServerService runServerService = new RunServerService();
+    private static RunServerService runServerService;
     private static final GetServerInfoService getServerInfoService = new GetServerInfoService();
     private static final FormatServerSettingService formatServerSettingService = new FormatServerSettingService();
+
+    @Autowired
+    public void setRunServerService(RunServerService runServerService) {
+        AdminSocketImpl.runServerService = runServerService;
+    }
 
     @Autowired
     SocketHandlerServices socketHandlerServices;
@@ -86,8 +91,8 @@ public class AdminSocketImpl implements SocketRelatedService {
         }
         if ("cmd".equals(jb.getString("name"))){
             String cmd = jb.getString("startservercmd");
-            if (cmd!=null)
-                StaticDataUtil.cmd+=cmd;
+            if (cmd != null && !cmd.trim().isEmpty())
+                StaticDataUtil.cmd += " " + cmd.trim();
             runServerService.doCom(jb.getString("value"));
         }
         if ("message".equals(jb.getString("name"))) {
@@ -102,7 +107,7 @@ public class AdminSocketImpl implements SocketRelatedService {
         }
         return null;
     }
-    public static void mcServerStateSender(Map<String, Session> onlineSessions){
+    public static Thread mcServerStateSender(Map<String, Session> onlineSessions){
         Thread mcServerStateSender = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -137,9 +142,10 @@ public class AdminSocketImpl implements SocketRelatedService {
             }
         });
         mcServerStateSender.start();
+        return mcServerStateSender;
     }
 
-    public static void ServerInfoSender(Map<String, Session> onlineSessions){
+    public static Thread ServerInfoSender(Map<String, Session> onlineSessions){
         Thread ServerInfoSender = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -176,9 +182,10 @@ public class AdminSocketImpl implements SocketRelatedService {
             }
         });
         ServerInfoSender.start();
+        return ServerInfoSender;
     }
 
-    public static void authenticationThreadReader(List<AOPtoken> aoPtokens, Map<String, Session> onlineSessions) {
+    public static Thread authenticationThreadReader(List<AOPtoken> aoPtokens, Map<String, Session> onlineSessions) {
         Thread authenticationThreadReader = new Thread(new Runnable() {
             int size = 0;
             Long startTs = System.currentTimeMillis();
@@ -210,6 +217,7 @@ public class AdminSocketImpl implements SocketRelatedService {
             }
         });
         authenticationThreadReader.start();
+        return authenticationThreadReader;
     }
 //    暂时废弃
 //    public static void conloseSender(Map<String, Session> onlineSessions){

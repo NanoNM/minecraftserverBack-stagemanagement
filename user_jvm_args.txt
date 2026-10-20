@@ -1,0 +1,3 @@
+# Add one Java Virtual Machine option per line, for example:
+# -Xms2G
+# -Xmx4G

@@ -10,10 +10,18 @@ import minecraftserveradmin.core.util.LogUtil;
 import minecraftserveradmin.core.util.StaticDataUtil;
 import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import static minecraftserveradmin.core.util.TimeUtil.MCServerStartTime;
 
@@ -27,6 +35,12 @@ public class RunServerService {
     @Autowired
     SocketHandlerServices socketHandlerServices;
 
+    @Value("${minecraft.java.path:java}")
+    private String javaPath;
+
+    @Value("${minecraft.jvm-args-file:user_jvm_args.txt}")
+    private String jvmArgsFile;
+
     String logname;
     //判断系统
     GetServerInfoService getServerInfoService = new GetServerInfoService();
@@ -39,8 +53,32 @@ public class RunServerService {
         try {
             if ("startserver".equals(cmd) && serverIsOpen == 0){
                 //System.out.println(System.getProperty("user.dir"));
-                LogUtil.log.info("jar包通过指令==>" + StaticDataUtil.cmd +"执行了");
-                process = Runtime.getRuntime().exec(StaticDataUtil.cmd);
+                if (javaPath == null || javaPath.trim().isEmpty()) {
+                    throw new IOException("minecraft.java.path 未配置");
+                }
+                if (jvmArgsFile == null || jvmArgsFile.trim().isEmpty()) {
+                    throw new IOException("minecraft.jvm-args-file 未配置");
+                }
+                Path argsFilePath = Paths.get(jvmArgsFile).toAbsolutePath().normalize();
+                if (!Files.isRegularFile(argsFilePath)) {
+                    throw new FileNotFoundException("Java 启动参数文件不存在: " + argsFilePath);
+                }
+                StringTokenizer commandTokens = new StringTokenizer(StaticDataUtil.cmd);
+                if (!commandTokens.hasMoreTokens()) {
+                    throw new IOException("Minecraft 启动命令为空");
+                }
+                List<String> command = new ArrayList<>();
+                command.add(javaPath);
+                command.add("@" + argsFilePath);
+                String firstToken = commandTokens.nextToken();
+                if (!"java".equals(firstToken)) {
+                    command.add(firstToken);
+                }
+                while (commandTokens.hasMoreTokens()) {
+                    command.add(commandTokens.nextToken());
+                }
+                LogUtil.log.info("jar包通过指令==>" + Arrays.toString(command.toArray()) + "执行了");
+                process = new ProcessBuilder(command).start();
 
                 //获取jar包进程的pid
                 Field field = null;

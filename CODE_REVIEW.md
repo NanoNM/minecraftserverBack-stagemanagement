@@ -2,7 +2,7 @@
 
 > 扫描时间：2026-10-20
 > 扫描范围：`src/main/java`、`src/main/resources`、`sql.sql`
-> 说明：已排除此前已修复项（`ServerInfoSender` 重复发送、`setModel()` 循环内调用、`/userloginout` 未鉴权、登录失败限制、`autologin` 累积）
+> 说明：已排除此前已修复项（`ServerInfoSender` 重复发送、`setModel()` 循环内调用、`/userloginout` 未鉴权、登录失败限制、`autologin` 累积、`文件接口路径穿越`）。本报告已同步当前代码状态，补充了新发现的安全与稳定性问题。
 
 ---
 
@@ -85,7 +85,7 @@ if (debugBypassAuth && "233".equals(name) && "233".equals(token)) {
 
 ---
 
-### 4. 命令注入
+### 4. 启动 jar 与参数由客户端拼接，缺少输入约束
 
 **位置**：`AdminSocketImpl.java:81-84`
 
@@ -95,19 +95,43 @@ if (cmd!=null) StaticDataUtil.cmd += cmd;
 runServerService.doCom(jb.getString("value"));
 ```
 
-`StaticDataUtil.cmd` 最终传给 `Runtime.getRuntime().exec(...)`，客户端可拼接任意系统命令。
+**设计说明**：`startservercmd` 用于传入要启动的 jar 包名及其启动参数，再追加到 `StaticDataUtil.cmd` 的 `java -jar` 前缀后执行。这是当前预期的启动方式，不应简单描述为“客户端可拼接任意系统命令”：`Runtime.exec(String)` 不会像 shell 一样解释 `;`、`&&` 等 shell 运算符。
 
-**建议**：启动命令改为固定模板 + 参数白名单，禁止拼接客户端字符串。
+**仍需关注**：服务端未将 jar 名限制为 `/admin/getjar` 返回的文件，也没有将 jar 路径约束在服务端目录中；客户端还可自由提供 jar 的参数。因此，具备 WebSocket 管理权限的客户端可能启动非预期的 jar 或传入非预期应用参数。字符串拼接也难以正确处理路径中的空格，并可能因 `StaticDataUtil.cmd` 为静态可变字段而累积参数。
+
+**建议**：
+
+- 将 jar 名作为独立字段传递，并校验其为服务端允许目录中的已列出 jar 文件；
+- 将 JVM 可选参数和应用参数分别作为参数列表传递，使用 `ProcessBuilder`，不要拼接命令字符串；
+- 每次启动都从固定的 `java` 命令和校验后的参数重新构造命令，不复用可变的静态命令字符串。
 
 ---
 
-### 5. 文件接口路径穿越
+### 5. 文件接口路径穿越（已修复）
 
 **位置**：`FileController.java`、`NewFIleOperationImpl.java`
 
-`path` 参数无校验，直接 `new File(path)`，可越出项目目录读写/删除宿主机任意文件。
+当前实现已通过 `resolveSafePath()` 统一规范化路径，并在 `rootPath` 之内做 `startsWith` 校验，阻止 `..`、绝对路径越界及目录外访问。
 
-**建议**：统一做 `Path.normalize()` + 白名单根目录校验，拒绝 `..` 与绝对路径。
+修复说明：
+
+```java
+private static final Path rootPath = Paths.get(projectPath).toAbsolutePath().normalize();
+
+private Path resolveSafePath(String path) {
+    Path candidate = Paths.get(path);
+    Path resolved = candidate.isAbsolute()
+            ? candidate.normalize()
+            : rootPath.resolve(path.replace('\\', '/').replaceFirst("^/+", "")).normalize();
+    if (!resolved.startsWith(rootPath)) {
+        LogUtil.log.warn("拒绝越界路径访问: " + path);
+        return null;
+    }
+    return resolved;
+}
+```
+
+该问题已从风险列表中移除。
 
 ---
 
@@ -375,7 +399,7 @@ TokenUtil tokenUtil = new TokenUtil();   // 手动实例化
 | 优先级 | 编号 | 理由 |
 |---|---|---|
 | P0 | 1、2 | 当前代码功能性回归，管理员登录后 WS/登出会异常 |
-| P0 | 3、4、5 | 安全漏洞 |
+| P0 | 3、4 | 安全漏洞 |
 | P1 | 6、10、11 | 功能不可用 / 状态不一致 |
 | P1 | 16 | 内存泄漏 |
 | P2 | 12、13、14、15 | 稳定性 |
@@ -388,8 +412,8 @@ TokenUtil tokenUtil = new TokenUtil();   // 手动实例化
 
 | 级别 | 数量 |
 |---|---|
-| 🔴 严重 | 5 |
+| 🔴 严重 | 4 |
 | 🟠 高 | 6 |
 | 🟡 中 | 9 |
 | ⚪ 低 | 10 |
-| **合计** | **30** |
+| **合计** | **29** |

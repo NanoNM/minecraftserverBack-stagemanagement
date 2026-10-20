@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 @Component
@@ -63,20 +64,61 @@ public class WebSocketService {
      */
     public static final Map<String, Session> onlineSessions = new ConcurrentHashMap<>();
 
+    private volatile Thread authenticationThread;
+    private volatile Thread serverStatusThread;
+    private volatile Thread serverInfoThread;
+    private final AtomicBoolean watchdogStarted = new AtomicBoolean();
+
     @PostConstruct
     void serverInit(){
         AdminSocketImpl.mcServerStatusSenderTimer = mcServerStatusSenderTimer;
         AdminSocketImpl.serverInfoSenderTimer = serverInfoSenderTimer;
         LogUtil.log.info("socket服务启动");
         LogUtil.log.info("权限验证系统启动");
-        AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);
+        authenticationThread = AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);
 //        LogUtil.log.info("控制台信息发送线程启动");
 //        AdminSocketImpl.conloseSender(onlineSessions);
         LogUtil.log.info("mc服务器状态发送线程启动");
-        AdminSocketImpl.mcServerStateSender(onlineSessions);
+        serverStatusThread = AdminSocketImpl.mcServerStateSender(onlineSessions);
         LogUtil.log.info("系统信息发送线程启动");
-        AdminSocketImpl.ServerInfoSender(onlineSessions);
+        serverInfoThread = AdminSocketImpl.ServerInfoSender(onlineSessions);
+        startThreadWatchdog();
         heartBeat();
+    }
+
+    private void startThreadWatchdog() {
+        if (!watchdogStarted.compareAndSet(false, true)) {
+            return;
+        }
+        Thread watchdog = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(5000);
+                    if (!isAlive(authenticationThread)) {
+                        LogUtil.log.error("token更新线程已退出，正在重启");
+                        authenticationThread = AdminSocketImpl.authenticationThreadReader(AOPtokens, onlineSessions);
+                    }
+                    if (!isAlive(serverStatusThread)) {
+                        LogUtil.log.error("服务器状态推送线程已退出，正在重启");
+                        serverStatusThread = AdminSocketImpl.mcServerStateSender(onlineSessions);
+                    }
+                    if (!isAlive(serverInfoThread)) {
+                        LogUtil.log.error("系统信息推送线程已退出，正在重启");
+                        serverInfoThread = AdminSocketImpl.ServerInfoSender(onlineSessions);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } catch (RuntimeException e) {
+                    LogUtil.log.error("后台线程守护检查失败: " + e.getMessage(), e);
+                }
+            }
+        }, "server-thread-watchdog");
+        watchdog.setDaemon(true);
+        watchdog.start();
+    }
+
+    private boolean isAlive(Thread thread) {
+        return thread != null && thread.isAlive();
     }
     /**
      * 当客户端打开连接：1.添加会话对象 2.更新在线人数
