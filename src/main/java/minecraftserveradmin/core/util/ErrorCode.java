@@ -1,6 +1,9 @@
 package minecraftserveradmin.core.util;
 
 public class ErrorCode {
+    //通用
+    public static final Integer SUCCESS = 0;
+
     //用户相关 正常10xx 异常3xxx
     public static final Integer LOGIN_SUCCESS = 1000;
     public static final Integer REGISTER_SUCCESS = 1001;
@@ -42,5 +45,15 @@ public class ErrorCode {
     public static final Integer USER_CHANGE_PASSWORD_FAIL = 3030;
     public static final Integer DELETE_ADMINUSER_FAIL = 3031;
     public static final Integer LOGIN_LOCKED = 3032;
+
+    //系统相关 统一异常处理 5xxx
+    public static final Integer SYSTEM_ERROR = 5000;
+    public static final Integer PARAM_ERROR = 5001;
+    public static final Integer REQUEST_METHOD_NOT_SUPPORTED = 5002;
+    public static final Integer MEDIA_TYPE_NOT_SUPPORTED = 5003;
+    public static final Integer UPLOAD_SIZE_EXCEEDED = 5004;
+    public static final Integer NOT_FOUND = 5005;
+    public static final Integer API_DEPRECATED = 5006;
+    public static final Integer UNAUTHORIZED = 5007;
 
 }

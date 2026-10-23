@@ -1,7 +1,6 @@
 package minecraftserveradmin.core.controller;
 
-import minecraftserveradmin.core.dao.UserDao;
-import minecraftserveradmin.core.entity.ServerInfoModel;
+import minecraftserveradmin.core.dto.ResultBody;
 import minecraftserveradmin.core.services.ErrorCodeService;
 import minecraftserveradmin.core.services.GetServerInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.PostConstruct;
+import java.util.Map;
 
 
 /**
@@ -22,20 +21,18 @@ public class MainPageController {
     @Autowired
     GetServerInfoService getServerInfoService;
 
+    /**
+     * 返回 Thymeleaf 视图名，不包装为 ResultBody。
+     */
     @GetMapping("/")
     private String index(){
         return "index";
     }
 
-//    @ResponseBody
-//    @GetMapping("/admin/getServerInfo")
-//    private ServerInfoModel serverInfo(){
-//        return getServerInfoService.setModel();
-//    }
     @ResponseBody
     @GetMapping("/errorcode")
-    private String getErrcode(){
-        return ErrorCodeService.getErrorCodeBuffer();
+    private ResultBody<Map<String, Object>> getErrcode(){
+        return ResultBody.success(ErrorCodeService.getErrorCodeMap());
     }
 
 }

@@ -1,5 +1,7 @@
 package minecraftserveradmin.core.controller;
 
+import minecraftserveradmin.core.dto.ResultBody;
+import minecraftserveradmin.core.entity.NewFileModel;
 import minecraftserveradmin.core.services.impl.NewFIleOperationImpl;
 import minecraftserveradmin.core.util.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,28 +23,32 @@ public class FileController {
 //  新的文件类避免用户隐私泄露
     @Autowired
     NewFIleOperationImpl fIleOperation;
+
     @ResponseBody
     @GetMapping("/admin/file")
-    private List fileManger(@RequestParam(value = "path",required = false) String path){
+    private ResultBody<List<NewFileModel>> fileManger(@RequestParam(value = "path",required = false) String path){
         if (path == null){
-            return fIleOperation.rootDir();
-        }else{
-            try {
-                return fIleOperation.getFIle(path);
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+            return ResultBody.success(fIleOperation.rootDir());
+        }
+        try {
+            return ResultBody.success(fIleOperation.getFIle(path));
+        } catch (IOException e) {
+            return ResultBody.error(ErrorCode.FILE_EDIT_FAIL, "读取目录失败: " + e.getMessage());
         }
     }
+
     @ResponseBody
     @GetMapping("/admin/renameFile")
-    private Integer fileRename(@RequestParam(value = "path") String path,@RequestParam(value = "rename")String name){
+    private ResultBody<Integer> fileRename(@RequestParam(value = "path") String path,@RequestParam(value = "rename")String name){
         if (fIleOperation.renameFile(path, name)){
-            return ErrorCode.FILE_RENAME_SUCCESS;
+            return ResultBody.success(ErrorCode.FILE_RENAME_SUCCESS, ErrorCode.FILE_RENAME_SUCCESS);
         }
-        return ErrorCode.FILE_RENAME_ERROR;
+        return ResultBody.error(ErrorCode.FILE_RENAME_ERROR, "重命名失败");
     }
+
+    /**
+     * 文件下载直接写出二进制流，无法包装为 ResultBody。
+     */
     @ResponseBody
     @GetMapping("/admin/download")
     private void fileDownloader(@RequestParam(value = "path") String path,HttpServletRequest request, HttpServletResponse response){
@@ -52,46 +58,60 @@ public class FileController {
             e.printStackTrace();
         }
     }
+
     @ResponseBody
     @PostMapping("/admin/fileeditor")
-    private Integer fileEditor(@RequestParam(value = "path") String path,@RequestParam(value = "string") String str){
+    private ResultBody<Integer> fileEditor(@RequestParam(value = "path") String path,@RequestParam(value = "string") String str){
         if(fIleOperation.fileEditor(path, str)){
-            return ErrorCode.FILE_EDIT_SUCCES;
+            return ResultBody.success(ErrorCode.FILE_EDIT_SUCCES, ErrorCode.FILE_EDIT_SUCCES);
         }
-        return ErrorCode.FILE_EDIT_FAIL;
+        return ResultBody.error(ErrorCode.FILE_EDIT_FAIL, "文件保存失败");
     }
+
     @ResponseBody
     @GetMapping("/admin/filedelete")
-    private Integer fileDelete(@RequestParam(value = "path") String path){
+    private ResultBody<Integer> fileDelete(@RequestParam(value = "path") String path){
         if(fIleOperation.fileDelete(path)){
-            return ErrorCode.FILE_REMOVE_SUCCES;
+            return ResultBody.success(ErrorCode.FILE_REMOVE_SUCCES, ErrorCode.FILE_REMOVE_SUCCES);
         }
-        return ErrorCode.FILE_REMOVE_FILE;
+        return ResultBody.error(ErrorCode.FILE_REMOVE_FILE, "文件删除失败");
     }
+
     @ResponseBody
     @GetMapping("/admin/mkdir")
-    private Integer mkdir(@RequestParam(value = "path") String path){
-        return fIleOperation.mkdir(path);
+    private ResultBody<Integer> mkdir(@RequestParam(value = "path") String path){
+        return wrap(fIleOperation.mkdir(path));
     }
+
     @ResponseBody
     @GetMapping("/admin/makefile")
-    private Integer makeFile(@RequestParam(value = "path") String path){
-        return fIleOperation.makeFile(path);
+    private ResultBody<Integer> makeFile(@RequestParam(value = "path") String path){
+        return wrap(fIleOperation.makeFile(path));
     }
+
     @ResponseBody
     @GetMapping("/admin/filecopy")
-    private Integer FileCopy(
+    private ResultBody<Integer> FileCopy(
             @RequestParam(value = "source") String source,
             @RequestParam(value = "dest") String dest){
-//        return fIleOperation.makeFile(path);
-        return fIleOperation.fileCopy(source, dest);
+        return wrap(fIleOperation.fileCopy(source, dest));
     }
+
     @ResponseBody
     @GetMapping("/admin/filemove")
-    private Integer FileMove(
+    private ResultBody<Integer> FileMove(
             @RequestParam(value = "source") String source,
             @RequestParam(value = "dest") String dest){
-//        return fIleOperation.makeFile(path);
-        return fIleOperation.fileMove(source, dest);
+        return wrap(fIleOperation.fileMove(source, dest));
+    }
+
+    /**
+     * 服务层以 ErrorCode 表达结果：10xx 为成功，3xxx 为失败，0 表示无权限。
+     */
+    private ResultBody<Integer> wrap(Integer code) {
+        if (code != null && code >= 1000 && code < 3000) {
+            return ResultBody.success(code, code);
+        }
+        return ResultBody.error(code, "操作失败");
     }
 }

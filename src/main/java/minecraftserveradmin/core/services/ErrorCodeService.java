@@ -4,35 +4,28 @@ import minecraftserveradmin.core.util.ErrorCode;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class ErrorCodeService {
-    static StringBuffer errorCodeBuffer = new StringBuffer();
+
+    private static final Map<String, Object> ERROR_CODE_MAP = new LinkedHashMap<>();
+
     static {
         try {
-            GeErrorCodeService();
+            for (Field field : ErrorCode.class.getFields()) {
+                ERROR_CODE_MAP.put(field.getName(), field.get(null));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private static void GeErrorCodeService() throws Exception {
-        errorCodeBuffer.append("{\"info\": \"errorCode\",\"codes\":{");
-        Field[] fields = ErrorCode.class.getFields();
-        for (int i = 0;i<fields.length;i++){
-//            errorCodeBuffer.append("\"").append(getConst(fields[i].getName())).append("\":\"").append(fields[i].getName()).append("\"");
-            errorCodeBuffer.append("\"").append(fields[i].getName()).append("\":\"").append(getConst(fields[i].getName())).append("\"");
-            if (i != fields.length-1){
-                errorCodeBuffer.append(",");
-            }
-        }
-        errorCodeBuffer.append("}}");
-    }
 
-    private static Object getConst(String field) throws Exception {
-        return ErrorCode.class.getField(field).get(null);
-    }
-
-    public static String getErrorCodeBuffer() {
-        return errorCodeBuffer.toString();
+    /**
+     * 返回错误码映射，由 Jackson 序列化，避免手工拼接 JSON 带来的转义问题。
+     */
+    public static Map<String, Object> getErrorCodeMap() {
+        return ERROR_CODE_MAP;
     }
 }

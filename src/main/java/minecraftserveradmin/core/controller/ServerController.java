@@ -1,8 +1,10 @@
 package minecraftserveradmin.core.controller;
 
+import minecraftserveradmin.core.dto.ResultBody;
 import minecraftserveradmin.core.services.FormatServerSettingService;
 import minecraftserveradmin.core.services.GetServerInfoService;
 import minecraftserveradmin.core.services.RunServerService;
+import minecraftserveradmin.core.util.ErrorCode;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,21 +33,18 @@ public class ServerController {
     @ResponseBody
     @GetMapping("/admin/server/s")
     @Deprecated
-    private String index(@Param("cmd") String cmd) {
-//        return runServerService.doCom(cmd);
-        return "接口废弃";
+    private ResultBody<String> index(@Param("cmd") String cmd) {
+        return ResultBody.error(ErrorCode.API_DEPRECATED, "接口废弃");
     }
 
     @ResponseBody
     @GetMapping("/admin/getjar")
-    private List<String> getJar() {
+    private ResultBody<List<String>> getJar() {
         try {
-            return getServerInfoService.getJar();
+            return ResultBody.success(getServerInfoService.getJar());
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            return ResultBody.error(ErrorCode.SYSTEM_ERROR, "获取 jar 列表失败: " + e.getMessage());
         }
-//        return runServerService.doCom();
-        return null;
     }
 
     /**
@@ -54,23 +53,8 @@ public class ServerController {
      */
     @ResponseBody
     @GetMapping("/admin/server")
-    private String serverInfoGetter(){
-//        StringBuffer s= new StringBuffer();
-//        try {
-//            File file = new File("./logs/latest.log");
-//            FileInputStream f = new FileInputStream(file);
-//            InputStreamReader isr = new InputStreamReader(f);
-//            BufferedReader br = new BufferedReader(isr);
-//            String line = null;
-//            while((line = br.readLine())!=null){
-//                s.append(line+"\n");
-//            }
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            s.append("");
-//        }
-        return "接口废弃";
+    private ResultBody<String> serverInfoGetter(){
+        return ResultBody.error(ErrorCode.API_DEPRECATED, "接口废弃");
     }
 
     /**
@@ -80,44 +64,40 @@ public class ServerController {
     @ResponseBody
     @GetMapping("/admin/serverTest")
     @Deprecated
-    private String serverTest(){
-//       return runServerService.getServerIsOpen();
-        return "接口废弃";
+    private ResultBody<String> serverTest(){
+        return ResultBody.error(ErrorCode.API_DEPRECATED, "接口废弃");
     }
 
     /**
      * 服务器当前设置
-     * @return json字符串
-     * @throws IOException 无
+     * @return 服务器配置项
      */
     @ResponseBody
     @GetMapping("/admin/getsetting")
-    public String infoEdit() throws IOException {
-        return formatServerSettingService.getModel();
+    public ResultBody<String> infoEdit() throws IOException {
+        return ResultBody.success(formatServerSettingService.getModel());
     }
 
     /**
      *
      * @param jsonParam json字符串
-     * @return 无用
-     * @throws IOException 无
+     * @return 是否保存成功
      */
     @ResponseBody
     @GetMapping("/admin/setsetting")
-    public boolean setSetting(@RequestParam("jsonstr") String jsonParam) {
+    public ResultBody<Boolean> setSetting(@RequestParam("jsonstr") String jsonParam) {
         try {
             formatServerSettingService.settingFormat(jsonParam);
-            return true;
+            return ResultBody.success(true);
         } catch (Exception exception) {
-            exception.printStackTrace();
-            return false;
+            return ResultBody.error(ErrorCode.SYSTEM_ERROR, "保存服务器配置失败: " + exception.getMessage());
         }
     }
 
     @ResponseBody
     @GetMapping("/admin/synchronizationConsole")
-    public String synchronizationConsole() throws IOException {
-        return getServerInfoService.synchronizationConsole();
+    public ResultBody<String> synchronizationConsole() throws IOException {
+        return ResultBody.success(getServerInfoService.synchronizationConsole());
     }
 }
 

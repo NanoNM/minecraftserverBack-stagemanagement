@@ -1,5 +1,6 @@
 package minecraftserveradmin.core.controller;
 
+import minecraftserveradmin.core.dto.ResultBody;
 import minecraftserveradmin.core.entity.PlayerModel;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Controller;
@@ -15,7 +16,7 @@ import java.io.*;
 public class PlayerController {
     @ResponseBody
     @GetMapping("/admin/testPlayer")
-    public PlayerModel testPlayer(@Param("id")String id) throws IOException {
+    public ResultBody<PlayerModel> testPlayer(@Param("id")String id) throws IOException {
         PlayerModel playerModel= new PlayerModel();
         FileReader fr = new FileReader(new File("./ops.json"));
         BufferedReader br = new BufferedReader(fr);
@@ -30,9 +31,6 @@ public class PlayerController {
             playerModel.setOp(true);
             playerModel.setName(id);
         }
-//        System.out.println(sb);
-//        JSONArray opFileJson = JSON.parseArray(str);
-//        System.out.println(opFileJson);
-        return playerModel;
+        return ResultBody.success(playerModel);
     }
 }

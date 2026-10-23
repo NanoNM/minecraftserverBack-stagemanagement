@@ -24,10 +24,13 @@ public class GetPluginsListService {
         for(int i=size-1;i>=0;i--){
             plugList.remove(i);
         }
-        //遍历mod
+        //遍历plugins
         String path = ".//plugins";
         File file = new File(path);
         File[] fs = file.listFiles();
+        if (fs == null) {
+            return null;
+        }
         for(File f:fs) {
             if (!f.isDirectory()) {
                 PluginModel p = new PluginModel();

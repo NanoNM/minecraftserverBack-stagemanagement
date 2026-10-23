@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import minecraftserveradmin.core.controller.WebSocketService;
 import minecraftserveradmin.core.dto.ResultBody;
 import minecraftserveradmin.core.entity.AOPtoken;
+import minecraftserveradmin.core.util.ErrorCode;
 import minecraftserveradmin.core.util.TokenUtil;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -38,7 +39,7 @@ public class AdminOperationIntercept implements baseInterceptor{
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         try {
-            ResultBody resultBody = new ResultBody(0,"Fail: UnAuthorized Request",null);
+            ResultBody<Void> resultBody = ResultBody.error(ErrorCode.UNAUTHORIZED, "Fail: UnAuthorized Request");
             response.getWriter().write(JSON.toJSONString(resultBody));
         } catch (IOException e) {
             e.printStackTrace();

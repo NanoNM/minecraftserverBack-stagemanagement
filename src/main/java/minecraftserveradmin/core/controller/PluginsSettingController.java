@@ -1,10 +1,10 @@
 package minecraftserveradmin.core.controller;
 
+import minecraftserveradmin.core.dto.ResultBody;
+import minecraftserveradmin.core.entity.PluginModel;
 import minecraftserveradmin.core.services.GetPluginsListService;
-import minecraftserveradmin.core.services.SaveFileService;
 import minecraftserveradmin.core.services.impl.SaveAsPluginImpl;
 import minecraftserveradmin.core.util.ErrorCode;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,12 +22,13 @@ public class PluginsSettingController {
     GetPluginsListService getPluginsListService;
     @Autowired
     SaveAsPluginImpl saveAsPlugin;
-    //mod启用禁用
+
+    //插件启用禁用
     @ResponseBody
     @GetMapping("/admin/pluginScanning")
-    public List enumMod(@RequestParam("name") String adminName, @RequestParam(value = "cmd", required = false) String cmd,@RequestParam(value = "filename", required = false) String filename){
+    public ResultBody<List<PluginModel>> enumMod(@RequestParam("name") String adminName, @RequestParam(value = "cmd", required = false) String cmd,@RequestParam(value = "filename", required = false) String filename){
         if (cmd == null){
-            return getPluginsListService.doScan();
+            return ResultBody.success(getPluginsListService.doScan());
         }else if("able".equals(cmd)){
             getPluginsListService.able(filename);
         }else if("disable".equals(cmd)) {
@@ -35,40 +36,38 @@ public class PluginsSettingController {
         }else if("remove".equals(cmd)){
             getPluginsListService.remove(filename);
         }else if("completelyDelete".equals(cmd)){
-            System.out.println("completelyDelete");
             getPluginsListService.CPRemove(adminName, filename);
         }
-        return null;
+        return ResultBody.success(null);
     }
 
-    //mod删除
+    //插件删除
     @ResponseBody
     @GetMapping("/admin/repluginMove")
-    public String removeMod(@RequestParam("cmd") String cmd,@RequestParam("filename") String filename){
-        return "功能未实现！！";
+    public ResultBody<String> removeMod(@RequestParam("cmd") String cmd,@RequestParam("filename") String filename){
+        return ResultBody.error(ErrorCode.API_DEPRECATED, "功能未实现");
     }
 
-    //mod信息
+    //插件信息
     @ResponseBody
     @GetMapping("/admin/moreplugininfo")
-    public Map<String, Object> removeMod(@RequestParam("filename") String filename){
-        return getPluginsListService.morePluginInfo(filename);
+    public ResultBody<Map<String, Object>> removeMod(@RequestParam("filename") String filename){
+        return ResultBody.success(getPluginsListService.morePluginInfo(filename));
     }
 
-    //mod上传
+    //插件上传
     @ResponseBody
     @PostMapping("/admin/upfileplugins")
-    public int uploadFile(@RequestParam("file") MultipartFile file) {
-        if (file!= null && file.isEmpty()){
-            return ErrorCode.NO_FILE_UPDATE;
+    public ResultBody<Integer> uploadFile(@RequestParam("file") MultipartFile file) {
+        if (file != null && file.isEmpty()){
+            return ResultBody.error(ErrorCode.NO_FILE_UPDATE, "上传文件为空");
         }
         try {
             saveAsPlugin.save(file);
         } catch (Exception e) {
-            e.printStackTrace();
-            return ErrorCode.NO_FILE_UPDATE;
+            return ResultBody.error(ErrorCode.NO_FILE_UPDATE, "上传失败: " + e.getMessage());
         }
-        return ErrorCode.FILE_UPDATE_SUCCESS;
+        return ResultBody.success(ErrorCode.FILE_UPDATE_SUCCESS, ErrorCode.FILE_UPDATE_SUCCESS);
     }
 
 
